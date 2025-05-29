@@ -40,34 +40,34 @@ log_header() {
 # 检查环境
 check_environment() {
     log_header "环境检查"
-    
+
     # 检查Java
     if ! command -v java &> /dev/null; then
         log_error "Java未安装"
         exit 1
     fi
-    
+
     JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | cut -d'.' -f1)
     if [ "$JAVA_VERSION" -lt 21 ]; then
         log_error "Java版本过低，需要21或更高版本"
         exit 1
     fi
     log_info "Java版本检查通过: $JAVA_VERSION"
-    
+
     # 检查Maven
     if ! command -v mvn &> /dev/null; then
         log_error "Maven未安装"
         exit 1
     fi
     log_info "Maven检查通过"
-    
+
     # 检查部署目录
     if [ ! -d "$DEPLOY_DIR" ]; then
         log_info "创建部署目录: $DEPLOY_DIR"
         sudo mkdir -p "$DEPLOY_DIR"
         sudo chown $(whoami):$(whoami) "$DEPLOY_DIR"
     fi
-    
+
     # 检查备份目录
     if [ ! -d "$BACKUP_DIR" ]; then
         log_info "创建备份目录: $BACKUP_DIR"
@@ -78,28 +78,28 @@ check_environment() {
 # 构建应用
 build_application() {
     log_header "构建应用"
-    
+
     log_info "清理旧的构建文件..."
     mvn clean
-    
+
     log_info "编译和打包应用..."
     mvn package -DskipTests
-    
+
     log_info "创建分发包..."
     mvn assembly:single
-    
+
     if [ ! -f "$BUILD_DIR/${APP_NAME}-*.jar" ]; then
         log_error "构建失败，JAR文件不存在"
         exit 1
     fi
-    
+
     log_info "构建完成"
 }
 
 # 备份当前版本
 backup_current_version() {
     log_header "备份当前版本"
-    
+
     if [ -f "$DEPLOY_DIR/lib/${APP_NAME}.jar" ]; then
         BACKUP_FILE="$BACKUP_DIR/${APP_NAME}-$(date +%Y%m%d_%H%M%S).jar"
         cp "$DEPLOY_DIR/lib/${APP_NAME}.jar" "$BACKUP_FILE"
@@ -112,7 +112,7 @@ backup_current_version() {
 # 停止服务
 stop_service() {
     log_header "停止服务"
-    
+
     if [ -f "$DEPLOY_DIR/bin/stop.sh" ]; then
         log_info "停止应用服务..."
         cd "$DEPLOY_DIR"
@@ -137,53 +137,53 @@ stop_service() {
 # 部署新版本
 deploy_new_version() {
     log_header "部署新版本"
-    
+
     # 解压分发包
     DIST_FILE=$(ls $BUILD_DIR/${APP_NAME}-*-distribution.tar.gz | head -1)
     if [ -z "$DIST_FILE" ]; then
         log_error "分发包不存在"
         exit 1
     fi
-    
+
     log_info "解压分发包: $DIST_FILE"
     tar -xzf "$DIST_FILE" -C /tmp/
-    
+
     EXTRACTED_DIR=$(ls -d /tmp/${APP_NAME}-* | head -1)
-    
+
     # 复制文件到部署目录
     log_info "复制文件到部署目录..."
     cp -r "$EXTRACTED_DIR"/* "$DEPLOY_DIR"/
-    
+
     # 设置执行权限
     chmod +x "$DEPLOY_DIR"/bin/*.sh
     chmod +x "$DEPLOY_DIR"/sbin/*.sh
-    
+
     # 清理临时文件
     rm -rf "$EXTRACTED_DIR"
-    
+
     log_info "部署完成"
 }
 
 # 启动服务
 start_service() {
     log_header "启动服务"
-    
+
     cd "$DEPLOY_DIR"
-    
+
     # 环境检查
     if [ -f "./sbin/env-check.sh" ]; then
         log_info "执行环境检查..."
         ./sbin/env-check.sh
     fi
-    
+
     # 启动应用
     log_info "启动应用服务..."
     ./bin/start.sh
-    
+
     # 等待启动
     log_info "等待服务启动..."
     sleep 10
-    
+
     # 检查状态
     if [ -f "./bin/status.sh" ]; then
         ./bin/status.sh
@@ -193,22 +193,22 @@ start_service() {
 # 健康检查
 health_check() {
     log_header "健康检查"
-    
+
     local max_attempts=30
     local attempt=1
-    
+
     while [ $attempt -le $max_attempts ]; do
         log_info "健康检查尝试 $attempt/$max_attempts"
-        
+
         if curl -f -s http://localhost:8080/actuator/health > /dev/null; then
             log_info "健康检查通过"
             return 0
         fi
-        
+
         sleep 2
         ((attempt++))
     done
-    
+
     log_error "健康检查失败"
     return 1
 }
@@ -216,31 +216,31 @@ health_check() {
 # 回滚
 rollback() {
     log_header "回滚到上一版本"
-    
+
     LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/${APP_NAME}-*.jar | head -1)
     if [ -z "$LATEST_BACKUP" ]; then
         log_error "没有找到备份文件"
         exit 1
     fi
-    
+
     log_info "回滚到: $LATEST_BACKUP"
-    
+
     # 停止服务
     stop_service
-    
+
     # 恢复备份
     cp "$LATEST_BACKUP" "$DEPLOY_DIR/lib/${APP_NAME}.jar"
-    
+
     # 启动服务
     start_service
-    
+
     log_info "回滚完成"
 }
 
 # 清理旧备份
 cleanup_old_backups() {
     log_header "清理旧备份"
-    
+
     # 保留最近10个备份
     BACKUP_COUNT=$(ls -1 "$BACKUP_DIR"/${APP_NAME}-*.jar 2>/dev/null | wc -l)
     if [ "$BACKUP_COUNT" -gt 10 ]; then
@@ -272,7 +272,7 @@ show_help() {
 # 主函数
 main() {
     local action=${1:-deploy}
-    
+
     case $action in
         deploy)
             check_environment

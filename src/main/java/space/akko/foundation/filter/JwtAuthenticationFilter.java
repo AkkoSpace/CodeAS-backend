@@ -43,14 +43,53 @@ public class JwtAuthenticationFilter implements Filter {
      * 不需要认证的路径
      */
     private static final List<String> EXCLUDE_PATHS = Arrays.asList(
+        // 认证相关接口
         "/api/auth/login",
         "/api/auth/refresh",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
+        "/api/auth/verify-email",
+        "/api/auth/verify-phone",
+
+        // 用户数据验证接口（注册时需要）
         "/api/users/check/username",
         "/api/users/check/email",
         "/api/users/check/phone",
-        "/swagger-ui",
-        "/v3/api-docs",
+
+        // 角色数据验证接口（管理员创建角色时需要）
+        "/api/roles/check/code",
+
+        // 公开的系统信息接口
+        "/api/system/info",
+        "/api/system/time",
+        "/api/system/version",
+
+        // 公开的配置信息接口
+        "/api/config/info",
+
+        // 健康检查接口（监控需要）
+        "/api/health",
+        "/api/health/database",
+        "/api/health/redis",
+        "/api/health/jvm",
+
+        // 验证码相关
+        "/api/captcha",
+
+        // 监控端点
+        "/actuator/health",
+        "/actuator/info",
+        "/actuator/metrics",
+        "/actuator/prometheus",
         "/actuator",
+
+        // 文档和静态资源
+        "/swagger-ui",
+        "/api/swagger-ui",
+        "/v3/api-docs",
+        "/api/v3/api-docs",
+        "/webjars",
+        "/static",
         "/favicon.ico",
         "/error"
     );
