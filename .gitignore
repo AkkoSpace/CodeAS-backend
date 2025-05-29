@@ -113,9 +113,10 @@ log/
 uploads/
 upload/
 
-# Cache
+# Cache directories (but not source code)
 .cache/
-cache/
+/cache/
+*.cache
 
 # Node modules (if any frontend build tools)
 node_modules/
