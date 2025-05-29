@@ -6,6 +6,10 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
+
+  # 允许Bean定义覆盖
+  main:
+    allow-bean-definition-overriding: true
   # 数据源配置（使用H2内存数据库进行测试）
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
@@ -53,7 +57,11 @@ spring:
 # 日志配置
 logging:
   level:
+    root: INFO
     space.akko: DEBUG
+    org.springframework.boot: DEBUG
+    org.springframework.context: DEBUG
+    org.springframework.beans: DEBUG
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
 
