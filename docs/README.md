@@ -15,9 +15,18 @@ docs/
 ├── guides/                      # 开发指南
 │   ├── DEVELOPMENT_GUIDE.md     # 开发指南
 │   ├── SECURITY_GUIDE.md        # 安全指南
-│   └── FLYWAY_GUIDE.md          # Flyway数据库迁移指南
-└── deployment/                  # 部署文档
-    └── DEPLOYMENT_GUIDE.md      # 部署指南
+│   ├── FLYWAY_GUIDE.md          # Flyway数据库迁移指南
+│   └── ENVIRONMENT_VARIABLES.md # 环境变量配置指南
+├── deployment/                  # 部署文档
+│   ├── DEPLOYMENT_GUIDE.md      # 部署指南
+│   ├── deployment-setup.md      # 部署环境准备清单
+│   └── deployment-flow-explanation.md # GitHub Actions 部署流程说明
+└── troubleshooting/             # 故障排除和修复指南
+    ├── README.md                # 故障排除总览
+    └── github-actions/          # GitHub Actions 相关问题
+        ├── overview.md          # GitHub Actions 问题总览
+        ├── owasp-dependency-check.md    # OWASP 依赖检查问题
+        └── github-container-registry.md # GHCR 推送问题
 ```
 
 ## 🎯 快速导航
@@ -33,16 +42,23 @@ docs/
 
 ### 👨‍💻 开发人员
 - **[开发指南](guides/DEVELOPMENT_GUIDE.md)** - 开发环境、代码规范、测试指南
+- **[环境变量配置](guides/ENVIRONMENT_VARIABLES.md)** - 环境变量管理和配置
 - **[Flyway指南](guides/FLYWAY_GUIDE.md)** - 数据库迁移管理
 - **[系统架构](project/ARCHITECTURE.md)** - 深入了解系统设计
 - **[在线API文档](http://localhost:26300/swagger-ui.html)** - 实时API接口文档
 
 ### 🚀 运维人员
 - **[部署指南](deployment/DEPLOYMENT_GUIDE.md)** - 部署、配置、监控指南
+- **[部署环境准备](deployment/deployment-setup.md)** - 服务器和环境准备清单
+- **[部署流程说明](deployment/deployment-flow-explanation.md)** - GitHub Actions 部署流程详解
 - **[安全指南](guides/SECURITY_GUIDE.md)** - 安全配置和最佳实践
 
 ### 🔒 安全管理员
 - **[安全指南](guides/SECURITY_GUIDE.md)** - 安全配置、权限管理、应急处理
+
+### 🔧 故障排除
+- **[故障排除总览](fixes/README.md)** - 常见问题和解决方案
+- **[GitHub Actions 问题](fixes/github-actions/overview.md)** - CI/CD 相关问题修复
 
 ## 📖 文档说明
 
@@ -58,6 +74,7 @@ docs/
 面向开发人员的指南文档：
 
 - **DEVELOPMENT_GUIDE.md**: 开发环境搭建、项目结构、开发规范、测试指南等
+- **ENVIRONMENT_VARIABLES.md**: 环境变量配置指南，包括不同环境的配置管理
 - **SECURITY_GUIDE.md**: 安全配置指南、最佳实践、应急处理流程等
 - **FLYWAY_GUIDE.md**: Flyway数据库迁移工具的使用指南和最佳实践
 
@@ -65,6 +82,17 @@ docs/
 面向运维人员的部署和运维文档：
 
 - **DEPLOYMENT_GUIDE.md**: 详细的部署指南，包括本地部署、Docker部署、生产环境部署等
+- **deployment-setup.md**: 部署环境准备清单，包括服务器配置、域名设置等
+- **deployment-flow-explanation.md**: GitHub Actions 部署流程详细说明
+
+### 故障排除 (troubleshooting/)
+常见问题的解决方案和修复指南：
+
+- **README.md**: 故障排除总览，包含目录结构和使用指南
+- **github-actions/**: GitHub Actions 相关问题修复
+  - **overview.md**: GitHub Actions 问题总览和修复记录
+  - **owasp-dependency-check.md**: OWASP 依赖检查 NVD API 问题修复
+  - **github-container-registry.md**: GitHub Container Registry 推送权限问题修复
 
 
 
