@@ -88,6 +88,20 @@ JWT_SECRET=dev_jwt_secret_key
 | `ADMIN_USERNAME` | 管理员用户名 | `admin` |
 | `ADMIN_PASSWORD` | 管理员密码 | `admin123` |
 
+### 平台功能配置
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `PLATFORM_API_DOCS_EXPORT_ENABLED` | API文档自动导出开关 | `true` |
+| `PLATFORM_API_DOCS_EXPORT_OUTPUT_DIR` | API文档导出目录 | `./docs/api/generated` |
+| `PLATFORM_API_DOCS_EXPORT_FORMATS` | 导出格式（逗号分隔） | `json,yaml` |
+| `PLATFORM_API_DOCS_EXPORT_INCLUDE_TIMESTAMP` | 是否包含时间戳 | `true` |
+| `PLATFORM_CACHE_L1_ENABLED` | L1缓存开关 | `true` |
+| `PLATFORM_CACHE_L1_MAXIMUM_SIZE` | L1缓存最大条目数 | `1000` |
+| `PLATFORM_CACHE_L1_EXPIRE_AFTER_WRITE` | L1缓存写入后过期时间 | `5m` |
+| `PLATFORM_CACHE_L2_ENABLED` | L2缓存开关 | `true` |
+| `PLATFORM_CACHE_L2_DEFAULT_TTL` | L2缓存默认TTL | `30m` |
+
 ## 安全注意事项
 
 1. **不要提交敏感配置**：`.env.*.local` 文件已被添加到 `.gitignore`，不会被提交到版本控制

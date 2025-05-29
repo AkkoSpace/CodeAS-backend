@@ -25,7 +25,7 @@ CodeAS Backend 是 akko.space 网站的后端服务项目，基于 Spring Boot 3
 
 ### 💾 数据存储
 - **PostgreSQL**：主数据库，支持多Schema
-- **Redis缓存**：多级缓存（本地+分布式）
+- **智能多级缓存**：L1本地缓存（Caffeine）+ L2分布式缓存（Redis）
 - **MyBatis Plus**：优雅的ORM框架
 - **Flyway**：数据库版本管理
 
@@ -34,6 +34,7 @@ CodeAS Backend 是 akko.space 网站的后端服务项目，基于 Spring Boot 3
 - **健康检查**：Spring Boot Actuator
 - **链路追踪**：请求追踪和日志关联
 - **性能监控**：JVM监控、缓存监控
+- **API文档**：自动导出OpenAPI文档（JSON/YAML格式）
 
 ### 🚀 部署方案
 - **Docker支持**：完整的容器化方案
@@ -43,18 +44,18 @@ CodeAS Backend 是 akko.space 网站的后端服务项目，基于 Spring Boot 3
 
 ## 技术栈
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| Java | 21 | 编程语言 |
-| Spring Boot | 3.2.1 | 应用框架 |
-| PostgreSQL | 15+ | 主数据库 |
-| Redis | 7+ | 缓存数据库 |
-| MyBatis Plus | 3.5.5 | ORM框架 |
-| Flyway | 10.4.1 | 数据库迁移 |
-| Caffeine | 3.1.8 | 本地缓存 |
+| 技术 | 版本     | 说明 |
+|------|--------|------|
+| Java | 21     | 编程语言 |
+| Spring Boot | 3.2.1  | 应用框架 |
+| PostgreSQL | 15+    | 主数据库 |
+| Redis | 7+     | 缓存数据库 |
+| MyBatis Plus | 3.5.5  | ORM框架 |
+| Flyway | 11.8.2 | 数据库迁移 |
+| Caffeine | 3.1.8  | 本地缓存 |
 | JWT | 0.12.3 | 认证令牌 |
-| SpringDoc | 2.3.0 | API文档 |
-| Docker | - | 容器化 |
+| SpringDoc | 2.3.0  | API文档 |
+| Docker | -      | 容器化 |
 
 ## 快速开始
 
@@ -124,8 +125,9 @@ mvn spring-boot:run
 
 6. **访问应用**
 - 应用地址：http://localhost:26300
-- API文档：http://localhost:26300/swagger-ui.html
+- API文档：http://localhost:26300/api/swagger-ui.html
 - 健康检查：http://localhost:26300/actuator/health
+- 自动导出的API文档：`./docs/api/generated/` 目录（应用启动后自动生成）
 
 ### Docker部署
 
@@ -254,14 +256,17 @@ curl http://localhost:26300/actuator/metrics
 
 ### 开发指南
 - [开发指南](docs/guides/DEVELOPMENT_GUIDE.md) - 开发环境搭建和规范
+- [缓存使用指南](docs/guides/CACHE_GUIDE.md) - 多级缓存系统使用说明
 - [安全指南](docs/guides/SECURITY_GUIDE.md) - 安全配置和最佳实践
+- [Flyway指南](docs/guides/FLYWAY_GUIDE.md) - 数据库迁移管理
 
 ### 部署运维
 - [部署指南](docs/deployment/DEPLOYMENT_GUIDE.md) - 详细的部署说明
 
 ### API文档
-- [在线API文档](http://localhost:26300/swagger-ui.html) - Swagger UI自动生成
-- [API参考文档](docs/api/API_REFERENCE.md) - 详细的API使用说明
+- [API参考文档](docs/api/API_REFERENCE.md) - 详细的API使用说明和示例
+- [在线API文档](http://localhost:26300/api/swagger-ui.html) - Swagger UI交互式文档
+- [自动导出文档](docs/api/generated/) - 应用启动时自动导出的OpenAPI规范文档
 
 ## 更新日志
 

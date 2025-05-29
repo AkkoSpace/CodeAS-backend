@@ -2,6 +2,18 @@
 
 本文档提供 CodeAS Backend API 的详细使用说明。
 
+> 💡 **提示**: 应用启动时会自动导出机器可读的 OpenAPI 文档到 `docs/api/generated/` 目录，包含完整的接口规范。
+
+## 📄 自动导出文档
+
+系统在启动时会自动导出以下文档：
+
+- **api-docs-latest.json** - OpenAPI 3.0 规范（JSON格式）
+- **api-docs-latest.yaml** - OpenAPI 3.0 规范（YAML格式）
+- **api-summary-latest.json** - API统计摘要信息
+
+这些文档包含完整的接口定义、参数说明、响应格式等信息，适合程序化处理和集成。
+
 ## 📋 概述
 
 CodeAS Backend 提供 RESTful API 接口，支持用户管理、角色管理、系统配置等功能。
@@ -147,8 +159,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## 🔗 相关链接
 
 - [在线API文档](http://localhost:26300/api/swagger-ui.html) - Swagger UI交互式文档
-- [自动导出文档](generated/) - 应用启动时自动生成的OpenAPI文档
-- [项目文档](../) - 完整项目文档
+- [OpenAPI规范](http://localhost:26300/api/v3/api-docs) - 实时API规范JSON
+- [自动导出文档](generated/) - 本地导出的OpenAPI文档
+  - `api-docs-latest.json` - JSON格式的完整API规范
+  - `api-docs-latest.yaml` - YAML格式的完整API规范
+  - `api-summary-latest.json` - API统计摘要
 
 ## 📝 使用示例
 

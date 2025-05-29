@@ -181,13 +181,20 @@ module/
 ### API测试
 
 **推荐工具：**
-- **Swagger UI（内置，推荐）**：http://localhost:26300/swagger-ui.html
+- **Swagger UI（内置，推荐）**：http://localhost:26300/api/swagger-ui.html
   - 实时同步的API文档
   - 可直接测试API接口
   - 支持认证和参数配置
+  - 自动导出OpenAPI文档到 `docs/api/generated/` 目录
 - Postman - 专业的API测试工具
 - Insomnia - 轻量级API客户端
 - IntelliJ IDEA HTTP Client - IDE集成工具
+
+**API文档自动导出：**
+- 应用启动时自动导出OpenAPI文档
+- 支持JSON和YAML格式
+- 导出位置：`docs/api/generated/`
+- 包含API摘要统计信息
 
 ## 🧪 测试指南
 

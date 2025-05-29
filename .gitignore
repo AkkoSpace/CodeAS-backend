@@ -165,3 +165,7 @@ truststore.*
 # Sensitive data
 secrets/
 credentials/
+
+# API Documentation exports (keep latest for development)
+docs/api/generated/
+!docs/api/generated/*-latest.*
