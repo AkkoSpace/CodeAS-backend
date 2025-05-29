@@ -128,6 +128,13 @@ platform:
   config:
     hot-reload: true
 
+  api-docs:
+    export:
+      enabled: true
+      output-dir: ./docs/api/generated
+      formats: json,yaml
+      include-timestamp: true
+
 # 管理端点配置
 management:
   endpoints:
@@ -146,10 +153,10 @@ management:
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
+    path: /api/v3/api-docs
   swagger-ui:
     enabled: true
-    path: /swagger-ui.html
+    path: /api/swagger-ui.html
     operations-sorter: alpha
     tags-sorter: alpha
   info:

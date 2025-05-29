@@ -70,6 +70,10 @@ platform:
     include-request-body: false
     include-response-body: false
 
+  api-docs:
+    export:
+      enabled: false  # 生产环境禁用自动导出
+
 # 生产环境管理端点
 management:
   endpoints:

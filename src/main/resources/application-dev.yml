@@ -57,6 +57,13 @@ platform:
     include-request-body: true  # 开发环境记录请求体
     include-response-body: true  # 开发环境记录响应体
 
+  api-docs:
+    export:
+      enabled: true  # 开发环境启用自动导出
+      output-dir: ./docs/api/generated
+      formats: json,yaml
+      include-timestamp: false  # 开发环境不包含时间戳，便于版本控制
+
 # 开发环境管理端点 - 暴露所有端点便于调试
 management:
   endpoints:
