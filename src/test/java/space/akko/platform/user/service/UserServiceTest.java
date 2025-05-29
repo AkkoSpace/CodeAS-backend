@@ -3,8 +3,10 @@ package space.akko.platform.user.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import space.akko.config.TestConfig;
 import space.akko.platform.user.model.request.UserCreateRequest;
 import space.akko.platform.user.model.vo.UserVO;
 
@@ -18,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("test")
+@Import(TestConfig.class)
 @Transactional
 class UserServiceTest {
 

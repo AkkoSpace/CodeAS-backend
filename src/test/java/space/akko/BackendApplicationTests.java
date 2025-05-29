@@ -2,7 +2,9 @@ package space.akko;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import space.akko.config.TestConfig;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("test")
+@Import(TestConfig.class)
 class BackendApplicationTests {
 
     @Test
