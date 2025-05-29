@@ -14,31 +14,12 @@ jobs:
   test:
     name: 🧪 Test & Quality Check
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: codeas_test
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test123
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    # 使用内存数据库进行测试，不需要外部服务
 
     steps:
     - name: 📥 Checkout code
@@ -65,16 +46,9 @@ jobs:
       run: mvn clean compile
 
     - name: 🧪 Run tests
-      run: mvn test
+      run: mvn test -Dspring.profiles.active=test
       env:
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: codeas_test
-        DB_USERNAME: test
-        DB_PASSWORD: test123
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
-        JWT_SECRET: dGVzdC1qd3Qtc2VjcmV0LWZvci1jaS10ZXN0aW5n
+        SPRING_PROFILES_ACTIVE: test
 
     - name: 📊 Generate test report
       uses: dorny/test-reporter@v1
