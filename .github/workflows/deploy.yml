@@ -16,13 +16,14 @@ on:
         required: false
         type: string
 
-  push:
-    branches:
-      - dev
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '.gitignore'
+  # 暂时禁用自动部署，等服务器配置完成后再启用
+  # push:
+  #   branches:
+  #     - dev
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - '*.md'
+  #     - '.gitignore'
 
 env:
   JAVA_VERSION: '21'
@@ -34,7 +35,7 @@ jobs:
     if: github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
     environment:
       name: staging
-      url: https://staging.akko.space
+      url: ${{ vars.STAGING_URL || 'http://localhost:26300' }}
 
     steps:
     - name: 📥 Checkout code
@@ -81,7 +82,7 @@ jobs:
         curl -f ${{ vars.STAGING_URL }}/actuator/health || exit 1
 
     - name: 📢 Notify deployment
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK != ''
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
@@ -95,7 +96,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     environment:
       name: production
-      url: https://api.akko.space
+      url: ${{ vars.PRODUCTION_URL || 'http://localhost:26300' }}
 
     steps:
     - name: 📥 Checkout code
@@ -173,7 +174,7 @@ jobs:
         EOF
 
     - name: 📢 Notify deployment
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK != ''
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
