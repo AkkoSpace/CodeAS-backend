@@ -1,0 +1,70 @@
+version: 2
+updates:
+  # Maven依赖更新
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "AkkoSpace"
+    assignees:
+      - "AkkoSpace"
+    commit-message:
+      prefix: ":arrow_up:"
+      prefix-development: ":arrow_up:"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "java"
+    ignore:
+      # 忽略主要版本更新，需要手动处理
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.postgresql:*"
+        update-types: ["version-update:semver-major"]
+
+  # Docker依赖更新
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "AkkoSpace"
+    assignees:
+      - "AkkoSpace"
+    commit-message:
+      prefix: ":arrow_up:"
+      prefix-development: ":arrow_up:"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # GitHub Actions依赖更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "AkkoSpace"
+    assignees:
+      - "AkkoSpace"
+    commit-message:
+      prefix: ":arrow_up:"
+      prefix-development: ":arrow_up:"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
