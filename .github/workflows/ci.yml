@@ -121,6 +121,9 @@ jobs:
         cache: maven
 
     - name: 🔍 Run dependency check
+      env:
+        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        SKIP_NVD_UPDATE: ${{ secrets.NVD_API_KEY == '' && 'true' || 'false' }}
       run: mvn clean compile dependency-check:check
 
     - name: 📤 Upload security report
@@ -136,6 +139,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - name: 📥 Checkout code
@@ -152,6 +158,13 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: 🔍 Verify Docker login
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+      run: |
+        echo "Logged in as: ${{ github.actor }}"
+        echo "Repository: ${{ github.repository }}"
+        echo "Registry: ghcr.io"
+
     - name: 📥 Download build artifacts
       uses: actions/download-artifact@v4
       with:
@@ -162,12 +175,16 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ghcr.io/${{ github.repository }}
+        images: ghcr.io/${{ github.repository_owner }}/codeas-backend
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
+        labels: |
+          org.opencontainers.image.title=CodeAS Backend
+          org.opencontainers.image.description=Backend service for CodeAS platform
+          org.opencontainers.image.vendor=AkkoSpace
 
     - name: 🏗️ Build and push Docker image
       uses: docker/build-push-action@v5

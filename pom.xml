@@ -324,6 +324,17 @@
                     <suppressionFiles>
                         <suppressionFile>.github/dependency-check-suppressions.xml</suppressionFile>
                     </suppressionFiles>
+                    <!-- NVD API 配置 -->
+                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                    <nvdMaxRetryCount>10</nvdMaxRetryCount>
+                    <nvdApiDelay>4000</nvdApiDelay>
+                    <!-- 如果没有 API 密钥，跳过 NVD 更新 -->
+                    <skipNvdUpdate>${env.SKIP_NVD_UPDATE}</skipNvdUpdate>
+                    <!-- 使用本地缓存数据 -->
+                    <cacheDirectory>${user.home}/.m2/dependency-check-data</cacheDirectory>
+                    <!-- 数据库更新超时设置 -->
+                    <connectionTimeout>30000</connectionTimeout>
+                    <readTimeout>60000</readTimeout>
                 </configuration>
                 <executions>
                     <execution>
