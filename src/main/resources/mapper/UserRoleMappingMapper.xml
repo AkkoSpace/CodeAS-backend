@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="space.akko.platform.role.repository.UserRoleMappingRepository">
+
+    <!-- 根据用户ID查询角色关联 -->
+    <select id="findByUserId" resultType="space.akko.platform.role.model.entity.UserRoleMapping">
+        SELECT * FROM platform_schema.user_role_mapping 
+        WHERE user_id = #{userId} AND is_deleted = false
+        ORDER BY created_at
+    </select>
+
+    <!-- 根据角色ID查询用户关联 -->
+    <select id="findByRoleId" resultType="space.akko.platform.role.model.entity.UserRoleMapping">
+        SELECT * FROM platform_schema.user_role_mapping 
+        WHERE role_id = #{roleId} AND is_deleted = false
+        ORDER BY created_at
+    </select>
+
+    <!-- 根据用户ID和角色ID查询关联 -->
+    <select id="findByUserIdAndRoleId" resultType="space.akko.platform.role.model.entity.UserRoleMapping">
+        SELECT * FROM platform_schema.user_role_mapping 
+        WHERE user_id = #{userId} AND role_id = #{roleId} AND is_deleted = false
+    </select>
+
+    <!-- 检查用户是否拥有角色 -->
+    <select id="existsByUserIdAndRoleId" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.user_role_mapping 
+        WHERE user_id = #{userId} AND role_id = #{roleId} 
+          AND is_deleted = false AND is_active = true
+          AND (effective_to IS NULL OR effective_to > CURRENT_TIMESTAMP)
+    </select>
+
+    <!-- 删除用户的所有角色 -->
+    <update id="deleteByUserId">
+        UPDATE platform_schema.user_role_mapping 
+        SET is_deleted = true, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 删除角色的所有用户关联 -->
+    <update id="deleteByRoleId">
+        UPDATE platform_schema.user_role_mapping 
+        SET is_deleted = true, updated_at = CURRENT_TIMESTAMP
+        WHERE role_id = #{roleId}
+    </update>
+
+    <!-- 删除用户的指定角色 -->
+    <update id="deleteByUserIdAndRoleId">
+        UPDATE platform_schema.user_role_mapping 
+        SET is_deleted = true, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </update>
+
+    <!-- 批量插入用户角色关联 -->
+    <insert id="batchInsert">
+        INSERT INTO platform_schema.user_role_mapping 
+        (user_id, role_id, effective_from, effective_to, is_active, created_at, updated_at)
+        VALUES
+        <foreach collection="mappings" item="mapping" separator=",">
+            (#{mapping.userId}, #{mapping.roleId}, #{mapping.effectiveFrom}, #{mapping.effectiveTo}, 
+             #{mapping.isActive}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        </foreach>
+    </insert>
+
+    <!-- 更新角色关联的有效期 -->
+    <update id="updateEffectiveTime">
+        UPDATE platform_schema.user_role_mapping 
+        SET effective_from = #{effectiveFrom}, 
+            effective_to = #{effectiveTo}, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId} AND role_id = #{roleId} AND is_deleted = false
+    </update>
+
+    <!-- 查询过期的角色关联 -->
+    <select id="selectExpiredMappings" resultType="space.akko.platform.role.model.entity.UserRoleMapping">
+        SELECT * FROM platform_schema.user_role_mapping 
+        WHERE is_deleted = false 
+          AND is_active = true
+          AND effective_to IS NOT NULL 
+          AND effective_to &lt; CURRENT_TIMESTAMP
+    </select>
+
+    <!-- 批量更新角色关联状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE platform_schema.user_role_mapping 
+        SET is_active = #{isActive}, updated_at = CURRENT_TIMESTAMP
+        WHERE id IN
+        <foreach collection="mappingIds" item="mappingId" open="(" separator="," close=")">
+            #{mappingId}
+        </foreach>
+    </update>
+
+</mapper>

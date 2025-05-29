@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="space.akko.platform.role.repository.RoleRepository">
+
+    <!-- 角色详情结果映射 -->
+    <resultMap id="RoleDTOMap" type="space.akko.platform.role.model.dto.RoleDTO">
+        <id column="id" property="id"/>
+        <result column="role_code" property="roleCode"/>
+        <result column="role_name" property="roleName"/>
+        <result column="description" property="description"/>
+        <result column="role_level" property="roleLevel"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="parent_role_name" property="parentRoleName"/>
+        <result column="is_system" property="isSystem"/>
+        <result column="is_active" property="isActive"/>
+        <result column="user_count" property="userCount"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <collection property="permissions" ofType="string">
+            <result column="permission_code"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据角色编码查找角色 -->
+    <select id="findByRoleCode" resultType="space.akko.platform.role.model.entity.RoleDefinition">
+        SELECT * FROM platform_schema.role_definition 
+        WHERE role_code = #{roleCode} AND is_deleted = false
+    </select>
+
+    <!-- 检查角色编码是否存在 -->
+    <select id="existsByRoleCode" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.role_definition 
+        WHERE role_code = #{roleCode} AND is_deleted = false
+    </select>
+
+    <!-- 分页查询角色 -->
+    <select id="selectRolePage" resultMap="RoleDTOMap">
+        SELECT DISTINCT
+            r.id, r.role_code, r.role_name, r.description, r.role_level, r.parent_id,
+            r.is_system, r.is_active, r.created_at, r.updated_at,
+            pr.role_name as parent_role_name,
+            COUNT(urm.user_id) as user_count
+        FROM platform_schema.role_definition r
+        LEFT JOIN platform_schema.role_definition pr ON r.parent_id = pr.id AND pr.is_deleted = false
+        LEFT JOIN platform_schema.user_role_mapping urm ON r.id = urm.role_id AND urm.is_deleted = false
+        <where>
+            r.is_deleted = false
+            <if test="query.roleCode != null and query.roleCode != ''">
+                AND r.role_code LIKE CONCAT('%', #{query.roleCode}, '%')
+            </if>
+            <if test="query.roleName != null and query.roleName != ''">
+                AND r.role_name LIKE CONCAT('%', #{query.roleName}, '%')
+            </if>
+            <if test="query.roleLevel != null">
+                AND r.role_level = #{query.roleLevel}
+            </if>
+            <if test="query.parentId != null">
+                AND r.parent_id = #{query.parentId}
+            </if>
+            <if test="query.isSystem != null">
+                AND r.is_system = #{query.isSystem}
+            </if>
+            <if test="query.isActive != null">
+                AND r.is_active = #{query.isActive}
+            </if>
+            <if test="query.createdAtStart != null">
+                AND r.created_at >= #{query.createdAtStart}
+            </if>
+            <if test="query.createdAtEnd != null">
+                AND r.created_at &lt;= #{query.createdAtEnd}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (r.role_code LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR r.role_name LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+        </where>
+        GROUP BY r.id, r.role_code, r.role_name, r.description, r.role_level, r.parent_id,
+                 r.is_system, r.is_active, r.created_at, r.updated_at, pr.role_name
+        ORDER BY 
+        <choose>
+            <when test="query.sortField != null and query.sortField != ''">
+                ${query.sortField}
+            </when>
+            <otherwise>
+                r.role_level, r.created_at
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="query.sortOrder != null and query.sortOrder.toLowerCase() == 'desc'">
+                DESC
+            </when>
+            <otherwise>
+                ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据角色ID查询角色详情（带权限信息） -->
+    <select id="selectRoleDetailById" resultMap="RoleDTOMap">
+        SELECT DISTINCT
+            r.id, r.role_code, r.role_name, r.description, r.role_level, r.parent_id,
+            r.is_system, r.is_active, r.created_at, r.updated_at,
+            pr.role_name as parent_role_name,
+            COUNT(urm.user_id) as user_count,
+            pres.resource_code as permission_code
+        FROM platform_schema.role_definition r
+        LEFT JOIN platform_schema.role_definition pr ON r.parent_id = pr.id AND pr.is_deleted = false
+        LEFT JOIN platform_schema.user_role_mapping urm ON r.id = urm.role_id AND urm.is_deleted = false
+        LEFT JOIN platform_schema.role_permission_mapping rpm ON r.id = rpm.role_id AND rpm.is_deleted = false
+        LEFT JOIN platform_schema.permission_resource pres ON rpm.resource_id = pres.id AND pres.is_deleted = false
+        WHERE r.id = #{roleId} AND r.is_deleted = false
+        GROUP BY r.id, r.role_code, r.role_name, r.description, r.role_level, r.parent_id,
+                 r.is_system, r.is_active, r.created_at, r.updated_at, pr.role_name, pres.resource_code
+    </select>
+
+    <!-- 查询角色树（层级结构） -->
+    <select id="selectRoleTree" resultMap="RoleDTOMap">
+        WITH RECURSIVE role_tree AS (
+            -- 根节点
+            SELECT id, role_code, role_name, description, role_level, parent_id,
+                   is_system, is_active, created_at, updated_at, 0 as depth
+            FROM platform_schema.role_definition
+            WHERE parent_id = #{parentId} AND is_deleted = false
+            
+            UNION ALL
+            
+            -- 递归查询子节点
+            SELECT r.id, r.role_code, r.role_name, r.description, r.role_level, r.parent_id,
+                   r.is_system, r.is_active, r.created_at, r.updated_at, rt.depth + 1
+            FROM platform_schema.role_definition r
+            INNER JOIN role_tree rt ON r.parent_id = rt.id
+            WHERE r.is_deleted = false AND rt.depth &lt; 10
+        )
+        SELECT rt.*, pr.role_name as parent_role_name,
+               COUNT(urm.user_id) as user_count
+        FROM role_tree rt
+        LEFT JOIN platform_schema.role_definition pr ON rt.parent_id = pr.id AND pr.is_deleted = false
+        LEFT JOIN platform_schema.user_role_mapping urm ON rt.id = urm.role_id AND urm.is_deleted = false
+        GROUP BY rt.id, rt.role_code, rt.role_name, rt.description, rt.role_level, rt.parent_id,
+                 rt.is_system, rt.is_active, rt.created_at, rt.updated_at, rt.depth, pr.role_name
+        ORDER BY rt.role_level, rt.created_at
+    </select>
+
+    <!-- 根据用户ID查询角色列表 -->
+    <select id="selectRolesByUserId" resultType="space.akko.platform.role.model.entity.RoleDefinition">
+        SELECT r.* FROM platform_schema.role_definition r
+        INNER JOIN platform_schema.user_role_mapping urm ON r.id = urm.role_id
+        WHERE urm.user_id = #{userId} 
+          AND r.is_deleted = false 
+          AND urm.is_deleted = false
+          AND urm.is_active = true
+          AND (urm.effective_to IS NULL OR urm.effective_to > CURRENT_TIMESTAMP)
+        ORDER BY r.role_level
+    </select>
+
+    <!-- 查询角色的权限列表 -->
+    <select id="selectRolePermissions" resultType="string">
+        SELECT DISTINCT pr.resource_code FROM platform_schema.permission_resource pr
+        INNER JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id
+        WHERE rpm.role_id = #{roleId} 
+          AND pr.is_deleted = false 
+          AND rpm.is_deleted = false
+          AND rpm.is_granted = true
+    </select>
+
+    <!-- 查询角色的用户数量 -->
+    <select id="countUsersByRoleId" resultType="long">
+        SELECT COUNT(DISTINCT urm.user_id) FROM platform_schema.user_role_mapping urm
+        INNER JOIN platform_schema.user_profile u ON urm.user_id = u.id
+        WHERE urm.role_id = #{roleId} 
+          AND urm.is_deleted = false
+          AND u.is_deleted = false
+          AND urm.is_active = true
+    </select>
+
+    <!-- 查询子角色列表 -->
+    <select id="selectChildRoles" resultType="space.akko.platform.role.model.entity.RoleDefinition">
+        SELECT * FROM platform_schema.role_definition 
+        WHERE parent_id = #{parentId} AND is_deleted = false
+        ORDER BY role_level, created_at
+    </select>
+
+    <!-- 查询所有父角色ID（递归） -->
+    <select id="selectParentRoleIds" resultType="long">
+        WITH RECURSIVE parent_roles AS (
+            SELECT parent_id FROM platform_schema.role_definition
+            WHERE id = #{roleId} AND parent_id IS NOT NULL AND is_deleted = false
+            
+            UNION ALL
+            
+            SELECT r.parent_id FROM platform_schema.role_definition r
+            INNER JOIN parent_roles pr ON r.id = pr.parent_id
+            WHERE r.parent_id IS NOT NULL AND r.is_deleted = false
+        )
+        SELECT parent_id FROM parent_roles WHERE parent_id IS NOT NULL
+    </select>
+
+    <!-- 查询所有子角色ID（递归） -->
+    <select id="selectChildRoleIds" resultType="long">
+        WITH RECURSIVE child_roles AS (
+            SELECT id FROM platform_schema.role_definition
+            WHERE parent_id = #{roleId} AND is_deleted = false
+            
+            UNION ALL
+            
+            SELECT r.id FROM platform_schema.role_definition r
+            INNER JOIN child_roles cr ON r.parent_id = cr.id
+            WHERE r.is_deleted = false
+        )
+        SELECT id FROM child_roles
+    </select>
+
+    <!-- 批量更新角色状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE platform_schema.role_definition 
+        SET is_active = #{isActive}, updated_at = CURRENT_TIMESTAMP
+        WHERE id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </update>
+
+    <!-- 检查角色是否可以删除 -->
+    <select id="canDelete" resultType="boolean">
+        SELECT NOT EXISTS (
+            SELECT 1 FROM platform_schema.role_definition 
+            WHERE parent_id = #{roleId} AND is_deleted = false
+            UNION ALL
+            SELECT 1 FROM platform_schema.user_role_mapping 
+            WHERE role_id = #{roleId} AND is_deleted = false
+        )
+    </select>
+
+    <!-- 查询最大角色级别 -->
+    <select id="selectMaxRoleLevel" resultType="integer">
+        SELECT COALESCE(MAX(role_level), 0) FROM platform_schema.role_definition 
+        WHERE is_deleted = false
+    </select>
+
+</mapper>

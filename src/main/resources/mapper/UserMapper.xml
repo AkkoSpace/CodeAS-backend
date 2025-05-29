@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="space.akko.platform.user.repository.UserRepository">
+
+    <!-- 用户详情结果映射 -->
+    <resultMap id="UserDTOMap" type="space.akko.platform.user.model.dto.UserDTO">
+        <id column="id" property="id"/>
+        <result column="asid" property="asid"/>
+        <result column="username" property="username"/>
+        <result column="email" property="email"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="real_name" property="realName"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="gender" property="gender"/>
+        <result column="birth_date" property="birthDate"/>
+        <result column="is_active" property="isActive"/>
+        <result column="is_email_verified" property="isEmailVerified"/>
+        <result column="is_phone_verified" property="isPhoneVerified"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <collection property="roles" ofType="string">
+            <result column="role_code"/>
+        </collection>
+        <collection property="permissions" ofType="string">
+            <result column="permission_code"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据用户名查找用户 -->
+    <select id="findByUsername" resultType="space.akko.platform.user.model.entity.UserProfile">
+        SELECT * FROM platform_schema.user_profile 
+        WHERE username = #{username} AND is_deleted = false
+    </select>
+
+    <!-- 根据邮箱查找用户 -->
+    <select id="findByEmail" resultType="space.akko.platform.user.model.entity.UserProfile">
+        SELECT * FROM platform_schema.user_profile 
+        WHERE email = #{email} AND is_deleted = false
+    </select>
+
+    <!-- 根据手机号查找用户 -->
+    <select id="findByPhoneNumber" resultType="space.akko.platform.user.model.entity.UserProfile">
+        SELECT * FROM platform_schema.user_profile 
+        WHERE phone_number = #{phoneNumber} AND is_deleted = false
+    </select>
+
+    <!-- 根据ASID查找用户 -->
+    <select id="findByAsid" resultType="space.akko.platform.user.model.entity.UserProfile">
+        SELECT * FROM platform_schema.user_profile 
+        WHERE asid = #{asid} AND is_deleted = false
+    </select>
+
+    <!-- 检查用户名是否存在 -->
+    <select id="existsByUsername" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.user_profile 
+        WHERE username = #{username} AND is_deleted = false
+    </select>
+
+    <!-- 检查邮箱是否存在 -->
+    <select id="existsByEmail" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.user_profile 
+        WHERE email = #{email} AND is_deleted = false
+    </select>
+
+    <!-- 检查手机号是否存在 -->
+    <select id="existsByPhoneNumber" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.user_profile 
+        WHERE phone_number = #{phoneNumber} AND is_deleted = false
+    </select>
+
+    <!-- 分页查询用户（带角色信息） -->
+    <select id="selectUserPage" resultMap="UserDTOMap">
+        SELECT DISTINCT
+            u.id, u.asid, u.username, u.email, u.phone_number, u.real_name, u.nickname,
+            u.avatar_url, u.gender, u.birth_date, u.is_active, u.is_email_verified,
+            u.is_phone_verified, u.last_login_at, u.last_login_ip, u.created_at, u.updated_at,
+            r.role_code
+        FROM platform_schema.user_profile u
+        LEFT JOIN platform_schema.user_role_mapping urm ON u.id = urm.user_id AND urm.is_deleted = false
+        LEFT JOIN platform_schema.role_definition r ON urm.role_id = r.id AND r.is_deleted = false
+        <where>
+            u.is_deleted = false
+            <if test="query.username != null and query.username != ''">
+                AND u.username LIKE CONCAT('%', #{query.username}, '%')
+            </if>
+            <if test="query.email != null and query.email != ''">
+                AND u.email LIKE CONCAT('%', #{query.email}, '%')
+            </if>
+            <if test="query.phoneNumber != null and query.phoneNumber != ''">
+                AND u.phone_number LIKE CONCAT('%', #{query.phoneNumber}, '%')
+            </if>
+            <if test="query.realName != null and query.realName != ''">
+                AND u.real_name LIKE CONCAT('%', #{query.realName}, '%')
+            </if>
+            <if test="query.gender != null and query.gender != ''">
+                AND u.gender = #{query.gender}
+            </if>
+            <if test="query.isActive != null">
+                AND u.is_active = #{query.isActive}
+            </if>
+            <if test="query.isEmailVerified != null">
+                AND u.is_email_verified = #{query.isEmailVerified}
+            </if>
+            <if test="query.isPhoneVerified != null">
+                AND u.is_phone_verified = #{query.isPhoneVerified}
+            </if>
+            <if test="query.roleId != null">
+                AND urm.role_id = #{query.roleId}
+            </if>
+            <if test="query.createdAtStart != null">
+                AND u.created_at >= #{query.createdAtStart}
+            </if>
+            <if test="query.createdAtEnd != null">
+                AND u.created_at &lt;= #{query.createdAtEnd}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (u.username LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR u.email LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR u.real_name LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY 
+        <choose>
+            <when test="query.sortField != null and query.sortField != ''">
+                ${query.sortField}
+            </when>
+            <otherwise>
+                u.created_at
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="query.sortOrder != null and query.sortOrder.toLowerCase() == 'asc'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据用户ID查询用户详情（带角色和权限信息） -->
+    <select id="selectUserDetailById" resultMap="UserDTOMap">
+        SELECT DISTINCT
+            u.id, u.asid, u.username, u.email, u.phone_number, u.real_name, u.nickname,
+            u.avatar_url, u.gender, u.birth_date, u.is_active, u.is_email_verified,
+            u.is_phone_verified, u.last_login_at, u.last_login_ip, u.created_at, u.updated_at,
+            r.role_code,
+            pr.resource_code as permission_code
+        FROM platform_schema.user_profile u
+        LEFT JOIN platform_schema.user_role_mapping urm ON u.id = urm.user_id AND urm.is_deleted = false
+        LEFT JOIN platform_schema.role_definition r ON urm.role_id = r.id AND r.is_deleted = false
+        LEFT JOIN platform_schema.role_permission_mapping rpm ON r.id = rpm.role_id AND rpm.is_deleted = false
+        LEFT JOIN platform_schema.permission_resource pr ON rpm.resource_id = pr.id AND pr.is_deleted = false
+        WHERE u.id = #{userId} AND u.is_deleted = false
+    </select>
+
+    <!-- 根据角色ID查询用户列表 -->
+    <select id="selectUsersByRoleId" resultType="space.akko.platform.user.model.entity.UserProfile">
+        SELECT u.* FROM platform_schema.user_profile u
+        INNER JOIN platform_schema.user_role_mapping urm ON u.id = urm.user_id
+        WHERE urm.role_id = #{roleId} AND u.is_deleted = false AND urm.is_deleted = false
+    </select>
+
+    <!-- 查询用户的角色列表 -->
+    <select id="selectUserRoles" resultType="string">
+        SELECT r.role_code FROM platform_schema.role_definition r
+        INNER JOIN platform_schema.user_role_mapping urm ON r.id = urm.role_id
+        WHERE urm.user_id = #{userId} AND r.is_deleted = false AND urm.is_deleted = false
+    </select>
+
+    <!-- 查询用户的权限列表 -->
+    <select id="selectUserPermissions" resultType="string">
+        SELECT DISTINCT pr.resource_code FROM platform_schema.permission_resource pr
+        INNER JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id
+        INNER JOIN platform_schema.role_definition r ON rpm.role_id = r.id
+        INNER JOIN platform_schema.user_role_mapping urm ON r.id = urm.role_id
+        WHERE urm.user_id = #{userId} 
+          AND pr.is_deleted = false 
+          AND rpm.is_deleted = false 
+          AND r.is_deleted = false 
+          AND urm.is_deleted = false
+          AND rpm.is_granted = true
+    </select>
+
+    <!-- 更新用户最后登录信息 -->
+    <update id="updateLastLoginInfo">
+        UPDATE platform_schema.user_profile 
+        SET last_login_at = #{loginTime}, last_login_ip = #{loginIp}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 批量更新用户状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE platform_schema.user_profile 
+        SET is_active = #{isActive}, updated_at = CURRENT_TIMESTAMP
+        WHERE id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+</mapper>

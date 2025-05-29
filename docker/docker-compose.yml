@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # CodeAS 后端应用
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: codeas-backend
+    restart: unless-stopped
+    ports:
+      - "26300:26300"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=26300
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=codeas
+      - DB_USERNAME=codeas
+      - DB_PASSWORD=codeas123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - JWT_SECRET=YWtrby1iYWNrZW5kLXBsYXRmb3JtLXNlY3JldC1rZXktMjAyNA==
+      - JAVA_OPTS=-server -Xms512m -Xmx1g -XX:+UseG1GC
+    volumes:
+      - backend_logs:/app/logs
+      - backend_conf:/app/conf
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26300/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - backend-network
+
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: codeas-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=codeas
+      - POSTGRES_USER=codeas
+      - POSTGRES_PASSWORD=codeas123
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codeas -d codeas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: codeas-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  # Nginx反向代理（可选）
+  nginx:
+    image: nginx:alpine
+    container_name: codeas-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - backend-network
+
+# 数据卷
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_logs:
+    driver: local
+  backend_conf:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# 网络
+networks:
+  backend-network:
+    name: codeas-network
+    driver: bridge

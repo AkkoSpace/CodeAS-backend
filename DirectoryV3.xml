@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<trees>
+  <!-- 主要架构层 -->
+  <tree path="/src/main/java/space/akko/foundation" title="基础层"/>
+  <tree path="/src/main/java/space/akko/platform" title="平台层"/>
+
+  <!-- 基础层模块 -->
+  <tree path="/src/main/java/space/akko/foundation/common" title="通用类"/>
+  <tree path="/src/main/java/space/akko/foundation/config" title="配置类"/>
+  <tree path="/src/main/java/space/akko/foundation/constant" title="常量"/>
+  <tree path="/src/main/java/space/akko/foundation/exception" title="异常处理"/>
+  <tree path="/src/main/java/space/akko/foundation/utils" title="工具类"/>
+  <tree path="/src/main/java/space/akko/foundation/annotation" title="注解"/>
+  <tree path="/src/main/java/space/akko/foundation/aspect" title="切面"/>
+  <tree path="/src/main/java/space/akko/foundation/filter" title="过滤器"/>
+  <tree path="/src/main/java/space/akko/foundation/cache" title="缓存"/>
+  <tree path="/src/main/java/space/akko/foundation/controller" title="基础控制器"/>
+
+  <!-- 平台层模块 -->
+  <tree path="/src/main/java/space/akko/platform/user" title="用户管理"/>
+  <tree path="/src/main/java/space/akko/platform/role" title="角色管理"/>
+  <tree path="/src/main/java/space/akko/platform/permission" title="权限管理"/>
+  <tree path="/src/main/java/space/akko/platform/menu" title="菜单管理"/>
+  <tree path="/src/main/java/space/akko/platform/config" title="系统配置"/>
+  <tree path="/src/main/java/space/akko/platform/audit" title="操作审计"/>
+  <tree path="/src/main/java/space/akko/platform/dictionary" title="数据字典"/>
+
+  <!-- 资源目录 -->
+  <tree path="/src/main/resources" title="资源文件"/>
+  <tree path="/src/main/resources/db/migration" title="数据库迁移"/>
+  <tree path="/src/main/resources/mapper" title="MyBatis映射"/>
+
+  <!-- 测试目录 -->
+  <tree path="/src/test" title="测试代码"/>
+
+  <!-- 部署相关 -->
+  <tree path="/docker" title="Docker配置"/>
+  <tree path="/sql" title="运维SQL脚本"/>
+</trees>

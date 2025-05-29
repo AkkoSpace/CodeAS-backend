@@ -1,0 +1,93 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/codeas?currentSchema=platform_schema&searchpath=platform_schema,foundation_schema
+    username: ${DB_USERNAME:your_db_username_here}
+    password: ${DB_PASSWORD:your_db_password_here}
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      auto-commit: true
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 3000ms
+
+  flyway:
+    enabled: true
+    clean-disabled: true
+
+# 生产环境日志配置
+logging:
+  level:
+    root: WARN
+    space.akko: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    com.baomidou.mybatisplus: WARN
+  file:
+    name: /var/log/backend/backend.log
+    max-size: 500MB
+    max-history: 60
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{50} - %msg%n"
+
+# 生产环境平台配置
+platform:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION:3600} # 1小时
+      refresh-expiration: ${JWT_REFRESH_EXPIRATION:86400} # 24小时
+    login:
+      max-attempts: ${LOGIN_MAX_ATTEMPTS:3}
+      lock-duration: ${LOGIN_LOCK_DURATION:1800} # 30分钟
+
+  cache:
+    l1:
+      enabled: true
+      maximum-size: 2000
+      expire-after-write: 10m
+    l2:
+      enabled: true
+      default-ttl: 60m
+
+  audit:
+    enabled: true
+    async: true
+    include-request-body: false
+    include-response-body: false
+
+# 生产环境管理端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# 生产环境OpenAPI配置
+springdoc:
+  swagger-ui:
+    enabled: false # 生产环境关闭Swagger UI
+  api-docs:
+    enabled: false # 生产环境关闭API文档

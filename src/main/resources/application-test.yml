@@ -1,0 +1,79 @@
+# 测试环境配置 - 覆盖基础配置中的默认值
+spring:
+  datasource:
+    url: jdbc:postgresql://test-db:5432/codeas_test?currentSchema=platform_schema&searchpath=platform_schema,foundation_schema
+    username: test_user
+    password: test_password
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+
+  data:
+    redis:
+      host: test-redis
+      port: 6379
+      password: test_redis_password
+      database: 1  # 使用不同的数据库
+      timeout: 5000ms
+      connect-timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 4
+          max-idle: 2
+          min-idle: 1
+          max-wait: 5000ms
+
+  flyway:
+    clean-disabled: false  # 测试环境允许清理数据库
+
+# 测试环境日志配置 - 适中的日志级别
+logging:
+  level:
+    root: INFO
+    space.akko: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    com.baomidou.mybatisplus: INFO
+    org.springframework.cache: INFO
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n"
+
+# 测试环境平台配置 - 平衡安全性和便利性
+platform:
+  security:
+    jwt:
+      secret: test-jwt-secret-key-for-testing-environment-only
+      expiration: 3600  # 1小时
+    login:
+      max-attempts: 5  # 测试环境适中限制
+      lock-duration: 600  # 10分钟
+
+  cache:
+    l1:
+      maximum-size: 200  # 测试环境较小缓存
+      expire-after-write: 3m
+    l2:
+      default-ttl: 15m
+
+  audit:
+    async: true  # 测试环境异步执行
+    include-request-body: true  # 测试环境记录请求体便于调试
+    include-response-body: false  # 不记录响应体减少存储
+
+# 测试环境管理端点 - 暴露调试端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,configprops
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 测试环境OpenAPI配置 - 启用文档但限制功能
+springdoc:
+  swagger-ui:
+    enabled: true
+    try-it-out-enabled: false  # 测试环境禁用在线测试
+  api-docs:
+    enabled: true

@@ -1,0 +1,65 @@
+# 测试环境配置
+spring:
+  # 数据源配置（使用H2内存数据库进行测试）
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  # H2控制台配置
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        
+  # Redis配置（使用嵌入式Redis进行测试）
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          
+  # 缓存配置
+  cache:
+    type: simple
+    
+# 日志配置
+logging:
+  level:
+    space.akko: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    
+# 平台配置
+platform:
+  security:
+    jwt:
+      secret: dGVzdC1qd3Qtc2VjcmV0LWtleS1mb3ItdGVzdGluZw==
+      expiration: 3600
+      refresh-expiration: 86400
+      
+  cache:
+    multi-level:
+      enabled: false
+      
+  file:
+    upload:
+      path: ./test-uploads
+      max-size: 1048576  # 1MB for testing
+      allowed-types: jpg,jpeg,png,gif,txt

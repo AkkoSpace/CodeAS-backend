@@ -1,0 +1,76 @@
+# 开发环境配置 - 覆盖基础配置中的默认值
+# 注意：敏感信息应通过环境变量或外部配置文件提供
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/codeas?currentSchema=platform_schema&searchpath=platform_schema,foundation_schema
+    username: ${DB_USERNAME:your_db_username_here}
+    password: ${DB_PASSWORD:your_db_password_here}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:your_redis_password_here}
+      timeout: 10000ms
+      connect-timeout: 10000ms
+      lettuce:
+        pool:
+          min-idle: 2
+          max-wait: 10000ms
+
+  flyway:
+    clean-disabled: false  # 开发环境允许清理数据库
+
+# 开发环境日志配置 - 更详细的调试信息
+logging:
+  level:
+    root: INFO
+    space.akko: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n"
+
+# 开发环境平台配置 - 覆盖生产环境的安全设置
+platform:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:your_jwt_secret_here}  # 通过环境变量提供
+    login:
+      max-attempts: 10  # 开发环境放宽限制
+      lock-duration: 300  # 5分钟
+
+  cache:
+    l1:
+      maximum-size: 500  # 开发环境减少内存使用
+      expire-after-write: 2m  # 更短的缓存时间便于测试
+    l2:
+      default-ttl: 10m  # 更短的Redis缓存时间
+
+  audit:
+    async: false  # 开发环境同步执行便于调试
+    include-request-body: true  # 开发环境记录请求体
+    include-response-body: true  # 开发环境记录响应体
+
+# 开发环境管理端点 - 暴露所有端点便于调试
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 开发环境暴露所有端点
+  endpoint:
+    health:
+      show-details: always  # 开发环境显示详细健康信息
+  health:
+    redis:
+      enabled: false  # 禁用Redis健康检查，避免网络不稳定影响
+
+# 开发环境OpenAPI配置 - 启用所有调试功能
+springdoc:
+  swagger-ui:
+    try-it-out-enabled: true  # 开发环境启用在线测试
