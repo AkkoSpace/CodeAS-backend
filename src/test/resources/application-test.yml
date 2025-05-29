@@ -1,5 +1,10 @@
 # 测试环境配置
 spring:
+  # 排除自动配置，避免连接外部服务
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   # 数据源配置（使用H2内存数据库进行测试）
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
@@ -23,7 +28,7 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.H2Dialect
 
-  # Redis配置（使用嵌入式Redis进行测试）
+  # 禁用Redis（测试环境不需要）
   data:
     redis:
       host: localhost
@@ -32,8 +37,8 @@ spring:
       timeout: 2000ms
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
+          max-active: 1
+          max-idle: 1
           min-idle: 0
 
   # 缓存配置
