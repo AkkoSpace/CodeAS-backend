@@ -41,7 +41,6 @@ jobs:
       run: mvn clean verify
 
     - name: 📊 SonarCloud Scan
-      if: ${{ secrets.SONAR_TOKEN != '' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -51,12 +50,6 @@ jobs:
           -Dsonar.organization=akkospace \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-
-    - name: ⚠️ SonarCloud Scan Skipped
-      if: ${{ secrets.SONAR_TOKEN == '' }}
-      run: |
-        echo "⚠️ SonarCloud扫描已跳过 - 缺少SONAR_TOKEN密钥"
-        echo "如需启用SonarCloud扫描，请在GitHub Secrets中配置SONAR_TOKEN"
 
     - name: 📈 Upload coverage reports
       uses: codecov/codecov-action@v4
@@ -126,13 +119,12 @@ jobs:
         cache: maven
 
     - name: 📄 Check licenses
-      continue-on-error: true
       run: |
-        # 检查源代码文件的许可证头（允许失败）
-        mvn license:check || echo "⚠️ 许可证头检查失败，但继续执行"
-
         # 生成第三方依赖许可证报告
         mvn license:aggregate-add-third-party
+
+        # 检查源代码文件的许可证头
+        mvn license:check
 
     - name: 📊 Generate license report
       run: |
