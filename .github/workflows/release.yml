@@ -81,43 +81,32 @@ jobs:
       id: changelog
       run: |
         echo "📝 生成变更日志..."
-        
+
         # 获取上一个标签
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        
+
         if [ -n "$PREVIOUS_TAG" ]; then
-          echo "📋 从 $PREVIOUS_TAG 到 ${{ steps.version.outputs.tag }} 的变更:"
+          echo "📋 从 $PREVIOUS_TAG 到当前版本的变更:"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD)
         else
           echo "📋 首次发布的变更:"
           CHANGELOG=$(git log --pretty=format:"- %s (%h)" HEAD)
         fi
-        
-        # 生成发布说明
-        cat > release-notes.md << EOF
-## 🚀 CodeAS Backend ${{ steps.version.outputs.version }}
 
-### 📋 变更内容
-$CHANGELOG
-
-### 📦 发布文件
-- \`codeas-backend-${{ steps.version.outputs.version }}.jar\` - 主应用程序
-- \`codeas-backend-${{ steps.version.outputs.version }}-jar-with-dependencies.jar\` - 包含所有依赖的完整包
-
-### 🔧 系统要求
-- Java 21 或更高版本
-- PostgreSQL 15+
-- Redis 7+
-
-### 📚 部署说明
-1. 下载 JAR 文件
-2. 配置环境变量
-3. 运行: \`java -jar codeas-backend-${{ steps.version.outputs.version }}.jar\`
-
-### 🔗 相关链接
-- [文档](https://github.com/${{ github.repository }}/blob/main/README.md)
-- [Docker镜像](https://ghcr.io/${{ github.repository_owner }}/codeas-backend:${{ steps.version.outputs.version }})
-EOF
+        # 生成简化的发布说明
+        echo "## 🚀 CodeAS Backend Release" > release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📋 变更内容" >> release-notes.md
+        echo "$CHANGELOG" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📦 发布文件" >> release-notes.md
+        echo "- JAR文件: 主应用程序" >> release-notes.md
+        echo "- 完整包: 包含所有依赖" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 🔧 系统要求" >> release-notes.md
+        echo "- Java 21 或更高版本" >> release-notes.md
+        echo "- PostgreSQL 15+" >> release-notes.md
+        echo "- Redis 7+" >> release-notes.md
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
         cat release-notes.md >> $GITHUB_OUTPUT

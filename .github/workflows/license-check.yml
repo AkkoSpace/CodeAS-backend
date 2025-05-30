@@ -62,30 +62,27 @@ jobs:
     - name: 📊 Generate license summary
       run: |
         echo "📋 生成项目许可证摘要..."
-        
+
         # 生成许可证摘要
-        cat > license-summary.txt << EOF
-📋 CodeAS Backend 项目许可证摘要
-=====================================
-
-项目名称: CodeAS Backend
-项目描述: 企业级后台管理平台
-版权所有者: AkkoSpace (2025)
-许可证文件: LICENSE
-
-📄 许可证信息:
-$(head -3 LICENSE)
-
-✅ 许可证合规状态: 通过
-🔍 检查时间: $(date)
-🏷️ 检查版本: $(git rev-parse --short HEAD)
-
-📋 合规说明:
-- 项目包含有效的开源许可证
-- 许可证文件格式正确
-- 版权信息完整
-
-EOF
+        echo "📋 CodeAS Backend 项目许可证摘要" > license-summary.txt
+        echo "=====================================" >> license-summary.txt
+        echo "" >> license-summary.txt
+        echo "项目名称: CodeAS Backend" >> license-summary.txt
+        echo "项目描述: 企业级后台管理平台" >> license-summary.txt
+        echo "版权所有者: AkkoSpace (2025)" >> license-summary.txt
+        echo "许可证文件: LICENSE" >> license-summary.txt
+        echo "" >> license-summary.txt
+        echo "📄 许可证信息:" >> license-summary.txt
+        head -3 LICENSE >> license-summary.txt
+        echo "" >> license-summary.txt
+        echo "✅ 许可证合规状态: 通过" >> license-summary.txt
+        echo "🔍 检查时间: $(date)" >> license-summary.txt
+        echo "🏷️ 检查版本: $(git rev-parse --short HEAD)" >> license-summary.txt
+        echo "" >> license-summary.txt
+        echo "📋 合规说明:" >> license-summary.txt
+        echo "- 项目包含有效的开源许可证" >> license-summary.txt
+        echo "- 许可证文件格式正确" >> license-summary.txt
+        echo "- 版权信息完整" >> license-summary.txt
 
         echo "📄 许可证摘要内容:"
         cat license-summary.txt
