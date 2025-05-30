@@ -1,0 +1,181 @@
+name: Release Management
+
+on:
+  push:
+    tags:
+      - 'v*'  # 触发条件：推送以v开头的标签
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+
+jobs:
+  create-release:
+    name: 📦 Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整历史用于生成变更日志
+
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: 🏷️ Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+          echo "使用手动指定版本: $VERSION"
+        else
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "使用标签版本: $VERSION"
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+    - name: 🏗️ Build release artifacts
+      run: |
+        echo "🏗️ 构建发布版本 ${{ steps.version.outputs.version }}"
+        
+        # 更新版本号
+        mvn versions:set -DnewVersion=${{ steps.version.outputs.version }}
+        
+        # 构建项目
+        mvn clean package -DskipTests
+        
+        # 创建分发包
+        mvn assembly:single
+        
+        # 验证构建产物
+        ls -la target/
+        
+        # 重命名JAR文件以包含版本信息
+        if ls target/*.jar 1> /dev/null 2>&1; then
+          JAR_FILE=$(ls target/*.jar | grep -v sources | grep -v javadoc | head -1)
+          cp "$JAR_FILE" "codeas-backend-${{ steps.version.outputs.version }}.jar"
+          echo "✅ 创建发布JAR: codeas-backend-${{ steps.version.outputs.version }}.jar"
+        fi
+
+    - name: 📝 Generate changelog
+      id: changelog
+      run: |
+        echo "📝 生成变更日志..."
+
+        # 获取上一个标签
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+        if [ -n "$PREVIOUS_TAG" ]; then
+          echo "📋 从 $PREVIOUS_TAG 到当前版本的变更:"
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD)
+        else
+          echo "📋 首次发布的变更:"
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" HEAD)
+        fi
+
+        # 生成简化的发布说明
+        echo "## 🚀 CodeAS Backend Release" > release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📋 变更内容" >> release-notes.md
+        printf '%s\n' "$CHANGELOG" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📦 发布文件" >> release-notes.md
+        echo "- JAR文件: 主应用程序" >> release-notes.md
+        echo "- 完整包: 包含所有依赖" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 🔧 系统要求" >> release-notes.md
+        echo "- Java 21 或更高版本" >> release-notes.md
+        echo "- PostgreSQL 15+" >> release-notes.md
+        echo "- Redis 7+" >> release-notes.md
+
+        {
+          echo "changelog<<EOF"
+          cat release-notes.md
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
+
+    - name: 🏷️ Create GitHub Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        release_name: CodeAS Backend ${{ steps.version.outputs.version }}
+        body: ${{ steps.changelog.outputs.changelog }}
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease || false }}
+
+    - name: 📤 Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./codeas-backend-${{ steps.version.outputs.version }}.jar
+        asset_name: codeas-backend-${{ steps.version.outputs.version }}.jar
+        asset_content_type: application/java-archive
+
+    - name: 🐳 Build and push Docker image
+      run: |
+        echo "🐳 构建并推送Docker镜像..."
+        
+        # 登录到GitHub Container Registry
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        
+        # 构建Docker镜像
+        docker build -f docker/Dockerfile \
+          -t ghcr.io/${{ github.repository_owner }}/codeas-backend:${{ steps.version.outputs.version }} \
+          -t ghcr.io/${{ github.repository_owner }}/codeas-backend:latest \
+          .
+        
+        # 推送镜像
+        docker push ghcr.io/${{ github.repository_owner }}/codeas-backend:${{ steps.version.outputs.version }}
+        docker push ghcr.io/${{ github.repository_owner }}/codeas-backend:latest
+        
+        echo "✅ Docker镜像发布完成"
+
+    - name: 📢 Notify release
+      if: always() && secrets.SLACK_WEBHOOK != ''
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#releases'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            "text": "🚀 新版本发布",
+            "attachments": [{
+              "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+              "fields": [{
+                "title": "版本",
+                "value": "${{ steps.version.outputs.version }}",
+                "short": true
+              }, {
+                "title": "状态",
+                "value": "${{ job.status }}",
+                "short": true
+              }]
+            }]
+          }

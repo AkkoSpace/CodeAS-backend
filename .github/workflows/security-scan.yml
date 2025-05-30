@@ -1,0 +1,105 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+  schedule:
+    # 每周一上午10点运行安全扫描 (北京时间)
+    - cron: '0 2 * * 1'  # UTC 02:00 周一 = 北京时间 10:00 周一
+
+env:
+  JAVA_VERSION: '21'
+
+jobs:
+  dependency-check:
+    name: 🔍 OWASP Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: 🔍 Run OWASP Dependency Check
+      env:
+        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        SKIP_NVD_UPDATE: ${{ secrets.NVD_API_KEY == '' && 'true' || 'false' }}
+      run: |
+        echo "🔍 开始OWASP依赖安全检查..."
+        
+        if [ -z "$NVD_API_KEY" ]; then
+          echo "⚠️ NVD_API_KEY未配置，使用本地数据库"
+          echo "建议配置NVD_API_KEY以获得最新的漏洞数据"
+        else
+          echo "✅ NVD_API_KEY已配置，将获取最新漏洞数据"
+        fi
+
+        mvn clean compile dependency-check:check \
+          -DfailBuildOnCVSS=7 \
+          -DskipSystemScope=false \
+          -DskipTestScope=false || {
+            echo "❌ 发现高危安全漏洞 (CVSS >= 7.0)"
+            echo "请查看生成的报告了解详情"
+            exit 1
+          }
+
+        echo "✅ OWASP依赖检查完成"
+
+    - name: 📤 Upload OWASP report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: owasp-dependency-check-report
+        path: target/dependency-check-report.html
+        retention-days: 30
+
+  snyk-scan:
+    name: 🔒 Snyk Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'  # 定时任务跳过Snyk扫描
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: 🔒 Run Snyk security scan
+      uses: snyk/actions/maven@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high --sarif-file-output=snyk.sarif
+
+    - name: 📤 Upload Snyk SARIF report
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk.sarif') != ''
+      with:
+        sarif_file: snyk.sarif
+
+  # CodeQL分析需要GitHub Advanced Security (仅组织账户可用)
+  # 个人账户暂时注释掉此功能
+  # codeql-analysis:
+  #   name: 🔍 CodeQL Analysis
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'schedule'
+  #   steps:
+  #   - name: 📋 CodeQL Not Available
+  #     run: |
+  #       echo "ℹ️ CodeQL分析需要GitHub Advanced Security"
+  #       echo "📋 此功能仅对GitHub组织账户开放"
+  #       echo "🔗 了解更多: https://docs.github.com/en/get-started/learning-about-github/githubs-products#github-advanced-security"

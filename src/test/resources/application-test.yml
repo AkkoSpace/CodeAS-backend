@@ -1,95 +1,139 @@
-# 测试环境配置
+# CI性能测试环境配置
+server:
+  port: 26300
+
 spring:
-  # 排除自动配置，避免连接外部服务
+  # 只排除Redis相关配置，保持其他功能完整
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-      - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
 
-  # 允许Bean定义覆盖
+  # 允许Bean定义覆盖和禁用banner
   main:
     allow-bean-definition-overriding: true
-  # 数据源配置（使用H2内存数据库进行测试）
+    banner-mode: off
+
+  # 数据源配置 - CI环境使用PostgreSQL
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:codeas}
+    username: ${DB_USERNAME:test}
+    password: ${DB_PASSWORD:test123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 3
+      auto-commit: true
+      idle-timeout: 30000
+      connection-timeout: 5000
+      connection-test-query: SELECT 1
 
-  # H2控制台配置
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-  # JPA配置
+  # JPA配置 - 不创建表
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        dialect: org.hibernate.dialect.H2Dialect
 
-  # 禁用Redis（测试环境不需要）
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 1
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 1
-          max-idle: 1
-          min-idle: 0
-
-  # 缓存配置
+  # 缓存配置 - 使用本地缓存作为fallback
   cache:
-    type: simple
+    type: caffeine
 
-  # 禁用Flyway（测试使用JPA自动建表）
+  # 禁用Flyway
   flyway:
     enabled: false
 
-# 日志配置
+# MyBatis Plus配置 - 简化但保持功能
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+  global-config:
+    db-config:
+      id-type: auto
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  type-aliases-package: space.akko.platform.*.model.entity
+
+# 平台配置 - 最小化
+platform:
+  security:
+    jwt:
+      secret: dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0
+      expiration: 86400
+      refresh-expiration: 604800
+      header: Authorization
+      prefix: "Bearer "
+    password:
+      encoder: bcrypt
+      strength: 4  # 降低强度提高性能
+    login:
+      max-attempts: 10  # 宽松限制
+      lock-duration: 60   # 1分钟
+
+  # 禁用所有缓存和多级缓存
+  cache:
+    l1:
+      enabled: false
+    l2:
+      enabled: false
+    multi-level:
+      enabled: false
+
+  # 禁用审计
+  audit:
+    enabled: false
+
+  # 简化文件配置
+  file:
+    upload:
+      path: /tmp/uploads
+      max-size: 1048576  # 1MB
+      allowed-types: txt
+
+  # 禁用配置热重载
+  config:
+    hot-reload: false
+
+  # 禁用API文档导出
+  api-docs:
+    export:
+      enabled: false
+
+# 管理端点配置 - 只暴露必需的
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: false
+
+# OpenAPI文档配置 - 最小化
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api/v3/api-docs
+  swagger-ui:
+    enabled: false
+
+# 日志配置 - 调试模式
 logging:
   level:
     root: INFO
     space.akko: DEBUG
+    space.akko.foundation.config.DotenvConfig: DEBUG
+    org.springframework: INFO
     org.springframework.boot: DEBUG
     org.springframework.context: DEBUG
-    org.springframework.beans: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-
-# 平台配置
-platform:
-  security:
-    jwt:
-      secret: dGVzdC1qd3Qtc2VjcmV0LWtleS1mb3ItdGVzdGluZw==
-      expiration: 3600
-      refresh-expiration: 86400
-
-  cache:
-    multi-level:
-      enabled: false
-
-  file:
-    upload:
-      path: ./test-uploads
-      max-size: 1048576  # 1MB for testing
-      allowed-types: jpg,jpeg,png,gif,txt
-
-# 禁用不必要的功能
-management:
-  endpoints:
-    enabled-by-default: false
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      enabled: true
+    org.hibernate: WARN
+    com.baomidou.mybatisplus: WARN
+    org.postgresql: WARN
+    com.zaxxer.hikari: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

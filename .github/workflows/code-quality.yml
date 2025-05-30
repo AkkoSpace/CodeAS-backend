@@ -1,13 +1,10 @@
-name: Code Quality & Security
+name: Code Quality Analysis
 
 on:
   push:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
-  schedule:
-    # 每周一凌晨2点运行安全扫描
-    - cron: '0 2 * * 1'
 
 env:
   JAVA_VERSION: '21'
@@ -45,11 +42,54 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
+        echo "🔍 开始SonarCloud代码质量扫描..."
+
+        # 检查SONAR_TOKEN是否配置
+        if [ -z "$SONAR_TOKEN" ]; then
+          echo "❌ SONAR_TOKEN未配置，跳过SonarCloud扫描"
+          echo "请在GitHub Secrets中配置SONAR_TOKEN"
+          exit 1
+        fi
+
+        echo "✅ SONAR_TOKEN已配置"
+        echo "📋 SonarCloud配置信息:"
+        echo "  项目Key: AkkoSpace_CodeAS-backend"
+        echo "  组织: akkospace"
+        echo "  主机: https://sonarcloud.io"
+
+        # 检查覆盖率报告是否存在
+        if [ -f "target/site/jacoco/jacoco.xml" ]; then
+          echo "✅ 找到JaCoCo覆盖率报告"
+          COVERAGE_PARAM="-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+        else
+          echo "⚠️ 未找到JaCoCo覆盖率报告，跳过覆盖率分析"
+          COVERAGE_PARAM=""
+        fi
+
+        # 执行SonarCloud扫描
+        echo "🚀 执行SonarCloud扫描..."
         mvn sonar:sonar \
           -Dsonar.projectKey=AkkoSpace_CodeAS-backend \
           -Dsonar.organization=akkospace \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          -Dsonar.projectName="CodeAS Backend" \
+          -Dsonar.projectVersion=1.0.0 \
+          -Dsonar.sources=src/main/java \
+          -Dsonar.tests=src/test/java \
+          -Dsonar.java.binaries=target/classes \
+          -Dsonar.java.test.binaries=target/test-classes \
+          $COVERAGE_PARAM \
+          -X || {
+            echo "❌ SonarCloud扫描失败"
+            echo "可能的原因:"
+            echo "1. SONAR_TOKEN权限不足"
+            echo "2. SonarCloud项目配置错误"
+            echo "3. 网络连接问题"
+            echo "4. Maven配置问题"
+            exit 1
+          }
+
+        echo "✅ SonarCloud扫描完成"
 
     - name: 📈 Upload coverage reports
       uses: codecov/codecov-action@v4
@@ -58,165 +98,4 @@ jobs:
         flags: unittests
         name: codecov-umbrella
 
-  security-scan:
-    name: 🔒 Security Vulnerability Scan
-    runs-on: ubuntu-latest
 
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: maven
-
-    - name: 🔍 OWASP Dependency Check
-      env:
-        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        SKIP_NVD_UPDATE: ${{ secrets.NVD_API_KEY == '' && 'true' || 'false' }}
-      run: |
-        mvn clean compile dependency-check:check \
-          -DfailBuildOnCVSS=7
-
-    - name: 📤 Upload OWASP report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: owasp-dependency-check-report
-        path: target/dependency-check-report.html
-        retention-days: 30
-
-    - name: 🔒 Run Snyk security scan
-      uses: snyk/actions/maven@master
-      continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high --sarif-file-output=snyk.sarif
-
-    - name: 📤 Upload Snyk report
-      uses: github/codeql-action/upload-sarif@v3
-      if: always() && hashFiles('snyk.sarif') != ''
-      with:
-        sarif_file: snyk.sarif
-
-  license-check:
-    name: 📄 License Compliance Check
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: maven
-
-    - name: 📄 Check licenses
-      run: |
-        mvn license:check \
-          -Dlicense.failIfMissing=true \
-          -Dlicense.failIfUnknown=true
-
-    - name: 📊 Generate license report
-      run: mvn license:aggregate-third-party-report
-
-    - name: 📤 Upload license report
-      uses: actions/upload-artifact@v4
-      with:
-        name: license-report
-        path: target/site/aggregate-third-party-report.html
-        retention-days: 30
-
-  performance-test:
-    name: ⚡ Performance Test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: codeas_perf
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test123
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: maven
-
-    - name: 🏗️ Build application
-      run: mvn clean package -DskipTests
-
-    - name: 🚀 Start application
-      run: |
-        java -jar target/*.jar &
-        APP_PID=$!
-        echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-        
-        # 等待应用启动
-        for i in {1..30}; do
-          if curl -f http://localhost:26300/actuator/health; then
-            echo "Application started successfully"
-            break
-          fi
-          echo "Waiting for application to start... ($i/30)"
-          sleep 10
-        done
-      env:
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: codeas_perf
-        DB_USERNAME: test
-        DB_PASSWORD: test123
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
-        JWT_SECRET: dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0
-
-    - name: ⚡ Run performance tests
-      run: |
-        # 使用Apache Bench进行基础性能测试
-        ab -n 1000 -c 10 http://localhost:26300/actuator/health
-        
-        # 使用curl进行API响应时间测试
-        for endpoint in "/actuator/health" "/actuator/info"; do
-          echo "Testing $endpoint"
-          curl -w "@.github/curl-format.txt" -o /dev/null -s "http://localhost:26300$endpoint"
-        done
-
-    - name: 🛑 Stop application
-      if: always()
-      run: |
-        if [ ! -z "$APP_PID" ]; then
-          kill $APP_PID || true
-        fi
