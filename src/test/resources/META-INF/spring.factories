@@ -1,2 +1,0 @@
-org.springframework.context.ApplicationContextInitializer=\
-space.akko.foundation.config.DotenvConfig

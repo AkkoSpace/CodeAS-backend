@@ -256,24 +256,8 @@ jobs:
           exit 1
         fi
 
-        # 为CI环境创建.env.test.local文件
-        echo "📝 创建CI环境配置文件..."
-        echo "# CI性能测试环境配置" > .env.test.local
-        echo "SERVER_PORT=26300" >> .env.test.local
-        echo "DB_HOST=localhost" >> .env.test.local
-        echo "DB_PORT=5432" >> .env.test.local
-        echo "DB_USERNAME=test" >> .env.test.local
-        echo "DB_PASSWORD=test123" >> .env.test.local
-        echo "REDIS_HOST=localhost" >> .env.test.local
-        echo "REDIS_PORT=6379" >> .env.test.local
-        echo "REDIS_PASSWORD=\"\"" >> .env.test.local
-        echo "JWT_SECRET=dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0" >> .env.test.local
-        echo "ADMIN_USERNAME=admin" >> .env.test.local
-        echo "ADMIN_PASSWORD=admin123" >> .env.test.local
-
-        echo "✅ CI环境配置文件已创建"
-        echo "📋 .env.test.local文件内容:"
-        cat .env.test.local
+        # 直接通过命令行参数传递配置，避免.env文件加载问题
+        echo "📝 使用命令行参数传递配置..."
 
         # 启动应用程序，使用测试专用配置和明确的环境变量
         echo "启动命令: java -jar $JAR_FILE --spring.profiles.active=test"
@@ -287,6 +271,10 @@ jobs:
 
         nohup java -jar "$JAR_FILE" \
           --spring.profiles.active=test \
+          --spring.datasource.url=jdbc:postgresql://localhost:5432/codeas \
+          --spring.datasource.username=test \
+          --spring.datasource.password=test123 \
+          --server.port=26300 \
           > app.log 2>&1 &
 
         APP_PID=$!
