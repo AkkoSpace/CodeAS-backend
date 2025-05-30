@@ -208,7 +208,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_DB: codeas
-          POSTGRES_USER: test
+          POSTGRES_USER: root
           POSTGRES_PASSWORD: test123
         options: >-
           --health-cmd pg_isready
@@ -272,7 +272,7 @@ jobs:
         echo "📋 JVM系统属性:"
         echo "spring.profiles.active=test"
         echo "spring.datasource.url=jdbc:postgresql://localhost:5432/codeas"
-        echo "spring.datasource.username=test"
+        echo "spring.datasource.username=root"
         echo "server.port=26300"
 
         # 专注于解决环境变量传递问题
@@ -282,7 +282,7 @@ jobs:
         export DB_HOST=localhost
         export DB_PORT=5432
         export DB_NAME=codeas
-        export DB_USERNAME=test
+        export DB_USERNAME=root
         export DB_PASSWORD=test123
         export REDIS_HOST=localhost
         export REDIS_PORT=6379
@@ -347,7 +347,7 @@ jobs:
         DB_HOST: localhost
         DB_PORT: 5432
         DB_NAME: codeas
-        DB_USERNAME: test
+        DB_USERNAME: root
         DB_PASSWORD: test123
         REDIS_HOST: localhost
         REDIS_PORT: 6379
