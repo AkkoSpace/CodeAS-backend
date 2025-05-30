@@ -36,4 +36,7 @@
   <!-- 部署相关 -->
   <tree path="/docker" title="Docker配置"/>
   <tree path="/sql" title="运维SQL脚本"/>
+  <tree path="/docs/fixes" title="" extension="" presentableText="" tooltipTitle=""
+    icon="RunWidgetBuild"/>
+  <tree path="/docs/fixes/github-actions" icon="VcsVendorsGithub"/>
 </trees>
