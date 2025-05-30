@@ -247,7 +247,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>space.akko.backend.BackendApplication</mainClass>
+                            <mainClass>space.akko.BackendApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
