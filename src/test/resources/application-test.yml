@@ -3,16 +3,16 @@ server:
   port: 26300
 
 spring:
-  # 排除自动配置，避免连接外部服务
+  # 只排除Redis相关配置，保持其他功能完整
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-      - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
 
-  # 允许Bean定义覆盖
+  # 允许Bean定义覆盖和禁用banner
   main:
     allow-bean-definition-overriding: true
+    banner-mode: off
 
   # 数据源配置 - CI环境使用PostgreSQL
   datasource:
@@ -34,15 +34,15 @@ spring:
       ddl-auto: none
     show-sql: false
 
-  # 缓存配置 - 禁用
+  # 缓存配置 - 使用本地缓存作为fallback
   cache:
-    type: none
+    type: caffeine
 
   # 禁用Flyway
   flyway:
     enabled: false
 
-# MyBatis Plus配置 - 简化
+# MyBatis Plus配置 - 简化但保持功能
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -71,11 +71,13 @@ platform:
       max-attempts: 10  # 宽松限制
       lock-duration: 60   # 1分钟
 
-  # 禁用所有缓存
+  # 禁用所有缓存和多级缓存
   cache:
     l1:
       enabled: false
     l2:
+      enabled: false
+    multi-level:
       enabled: false
 
   # 禁用审计

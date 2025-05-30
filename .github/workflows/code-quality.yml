@@ -259,8 +259,8 @@ jobs:
         # 直接通过命令行参数传递配置，避免.env文件加载问题
         echo "📝 使用命令行参数传递配置..."
 
-        # 启动应用程序，使用测试专用配置和明确的环境变量
-        echo "启动命令: java -jar $JAR_FILE --spring.profiles.active=test"
+        # 启动应用程序，使用测试专用配置和明确的JVM系统属性
+        echo "启动命令: java -jar $JAR_FILE -Dspring.profiles.active=test"
 
         echo "📋 环境变量设置:"
         echo "DB_HOST=$DB_HOST"
@@ -269,12 +269,35 @@ jobs:
         echo "DB_USERNAME=$DB_USERNAME"
         echo "SERVER_PORT=$SERVER_PORT"
 
-        nohup java -jar "$JAR_FILE" \
-          --spring.profiles.active=test \
-          --spring.datasource.url=jdbc:postgresql://localhost:5432/codeas \
-          --spring.datasource.username=test \
-          --spring.datasource.password=test123 \
-          --server.port=26300 \
+        echo "📋 JVM系统属性:"
+        echo "spring.profiles.active=test"
+        echo "spring.datasource.url=jdbc:postgresql://localhost:5432/codeas"
+        echo "spring.datasource.username=test"
+        echo "server.port=26300"
+
+        # 专注于解决环境变量传递问题
+        echo "🔧 设置环境变量..."
+        export SPRING_PROFILES_ACTIVE=test
+        export SERVER_PORT=26300
+        export DB_HOST=localhost
+        export DB_PORT=5432
+        export DB_NAME=codeas
+        export DB_USERNAME=test
+        export DB_PASSWORD=test123
+        export REDIS_HOST=localhost
+        export REDIS_PORT=6379
+        export REDIS_PASSWORD=""
+
+        echo "📋 验证环境变量："
+        echo "SPRING_PROFILES_ACTIVE=$SPRING_PROFILES_ACTIVE"
+        echo "DB_USERNAME=$DB_USERNAME"
+        echo "DB_NAME=$DB_NAME"
+
+        # 启动完整应用，使用环境变量
+        nohup java -Xms512m -Xmx1g \
+          -Dspring.profiles.active=test \
+          -Dlogging.level.space.akko.foundation.config.DotenvConfig=DEBUG \
+          -jar "$JAR_FILE" \
           > app.log 2>&1 &
 
         APP_PID=$!
@@ -369,8 +392,10 @@ jobs:
           done
         }
 
-        # 测试其他端点（如果存在）
-        echo "🔍 测试其他可用端点..."
+        # 测试更多端点，验证应用功能
+        echo "🔍 测试应用功能端点..."
+
+        # 测试管理端点
         for endpoint in "/actuator/info" "/actuator/metrics"; do
           echo "测试端点: $endpoint"
           if curl -f -s "http://localhost:26300$endpoint" > /dev/null 2>&1; then
@@ -380,7 +405,26 @@ jobs:
           fi
         done
 
-        echo "✅ 性能测试完成"
+        # 测试API端点（如果有的话）
+        echo "🔍 测试API端点..."
+        for endpoint in "/api/system/info" "/api/health"; do
+          echo "测试端点: $endpoint"
+          if curl -f -s "http://localhost:26300$endpoint" > /dev/null 2>&1; then
+            echo "✅ $endpoint 可用"
+          else
+            echo "⚠️ $endpoint 不可用或未配置"
+          fi
+        done
+
+        # 数据库连接测试
+        echo "🔍 验证数据库连接..."
+        if curl -f -s "http://localhost:26300/actuator/health" | grep -q "UP"; then
+          echo "✅ 数据库连接正常"
+        else
+          echo "⚠️ 数据库连接可能有问题"
+        fi
+
+        echo "✅ 完整的性能测试完成"
 
     - name: 🛑 Stop application
       if: always()
