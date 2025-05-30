@@ -174,7 +174,12 @@
             <version>${commons-lang3.version}</version>
         </dependency>
 
-
+        <!-- Dotenv for environment variable management -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
 
         <!-- Lombok -->
         <dependency>
