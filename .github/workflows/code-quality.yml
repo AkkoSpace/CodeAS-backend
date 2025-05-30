@@ -245,7 +245,28 @@ jobs:
     - name: 🚀 Start application
       run: |
         echo "🚀 启动应用程序..."
-        nohup java -jar target/*.jar > app.log 2>&1 &
+
+        # 检查JAR文件是否存在
+        if ls target/*.jar 1> /dev/null 2>&1; then
+          JAR_FILE=$(ls target/*.jar | head -1)
+          echo "找到JAR文件: $JAR_FILE"
+        else
+          echo "❌ 未找到JAR文件"
+          ls -la target/
+          exit 1
+        fi
+
+        # 启动应用程序，使用测试专用配置
+        echo "启动命令: java -jar $JAR_FILE"
+        nohup java -jar "$JAR_FILE" \
+          --spring.profiles.active=test \
+          --spring.datasource.url=jdbc:postgresql://localhost:5432/codeas_perf \
+          --spring.datasource.username=test \
+          --spring.datasource.password=test123 \
+          --spring.flyway.enabled=false \
+          --logging.level.root=INFO \
+          > app.log 2>&1 &
+
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
         echo "应用程序PID: $APP_PID"
