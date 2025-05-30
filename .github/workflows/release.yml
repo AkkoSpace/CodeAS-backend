@@ -94,21 +94,19 @@ jobs:
         fi
 
         # 生成简化的发布说明
-        {
-          echo "## 🚀 CodeAS Backend Release"
-          echo ""
-          echo "### 📋 变更内容"
-          echo "$CHANGELOG"
-          echo ""
-          echo "### 📦 发布文件"
-          echo "- JAR文件: 主应用程序"
-          echo "- 完整包: 包含所有依赖"
-          echo ""
-          echo "### 🔧 系统要求"
-          echo "- Java 21 或更高版本"
-          echo "- PostgreSQL 15+"
-          echo "- Redis 7+"
-        } > release-notes.md
+        echo "## 🚀 CodeAS Backend Release" > release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📋 变更内容" >> release-notes.md
+        printf '%s\n' "$CHANGELOG" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 📦 发布文件" >> release-notes.md
+        echo "- JAR文件: 主应用程序" >> release-notes.md
+        echo "- 完整包: 包含所有依赖" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "### 🔧 系统要求" >> release-notes.md
+        echo "- Java 21 或更高版本" >> release-notes.md
+        echo "- PostgreSQL 15+" >> release-notes.md
+        echo "- Redis 7+" >> release-notes.md
 
         {
           echo "changelog<<EOF"

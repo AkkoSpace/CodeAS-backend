@@ -91,42 +91,15 @@ jobs:
       with:
         sarif_file: snyk.sarif
 
-  codeql-analysis:
-    name: 🔍 CodeQL Analysis
-    runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'  # 定时任务跳过CodeQL分析
-
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: 🔍 Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: java
-
-    - name: ☕ Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: maven
-
-    - name: 🏗️ Build for CodeQL
-      run: mvn clean compile -DskipTests
-
-    - name: 🔍 Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      continue-on-error: true  # 如果Code Scanning未启用，不让workflow失败
-
-    - name: 📋 CodeQL Analysis Summary
-      run: |
-        echo "🔍 CodeQL分析完成"
-        echo "📊 扫描了98/99个Java文件"
-        echo "📋 如果看到Code Scanning未启用的警告，请在仓库设置中启用"
-        echo "🔗 启用路径: Settings → Security → Code security and analysis → Code scanning"
+  # CodeQL分析需要GitHub Advanced Security (仅组织账户可用)
+  # 个人账户暂时注释掉此功能
+  # codeql-analysis:
+  #   name: 🔍 CodeQL Analysis
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'schedule'
+  #   steps:
+  #   - name: 📋 CodeQL Not Available
+  #     run: |
+  #       echo "ℹ️ CodeQL分析需要GitHub Advanced Security"
+  #       echo "📋 此功能仅对GitHub组织账户开放"
+  #       echo "🔗 了解更多: https://docs.github.com/en/get-started/learning-about-github/githubs-products#github-advanced-security"
