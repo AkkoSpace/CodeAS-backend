@@ -277,29 +277,16 @@ jobs:
 
         # 启动应用程序，使用测试专用配置和明确的环境变量
         echo "启动命令: java -jar $JAR_FILE --spring.profiles.active=test"
-        export SERVER_PORT=26300
-        export DB_HOST=localhost
-        export DB_PORT=5432
-        export DB_USERNAME=test
-        export DB_PASSWORD=test123
-        export REDIS_HOST=localhost
-        export REDIS_PORT=6379
-        export REDIS_PASSWORD=""
-        export JWT_SECRET=dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0
-        export ADMIN_USERNAME=admin
-        export ADMIN_PASSWORD=admin123
 
-        echo "📋 环境变量已设置:"
+        echo "📋 环境变量设置:"
         echo "DB_HOST=$DB_HOST"
         echo "DB_PORT=$DB_PORT"
+        echo "DB_NAME=$DB_NAME"
         echo "DB_USERNAME=$DB_USERNAME"
         echo "SERVER_PORT=$SERVER_PORT"
 
         nohup java -jar "$JAR_FILE" \
           --spring.profiles.active=test \
-          --server.port=26300 \
-          --spring.datasource.username=test \
-          --spring.datasource.password=test123 \
           > app.log 2>&1 &
 
         APP_PID=$!
