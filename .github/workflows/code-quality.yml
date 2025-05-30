@@ -257,14 +257,9 @@ jobs:
         fi
 
         # 启动应用程序，使用测试专用配置
-        echo "启动命令: java -jar $JAR_FILE"
+        echo "启动命令: java -jar $JAR_FILE --spring.profiles.active=test"
         nohup java -jar "$JAR_FILE" \
           --spring.profiles.active=test \
-          --spring.datasource.url=jdbc:postgresql://localhost:5432/codeas_perf \
-          --spring.datasource.username=test \
-          --spring.datasource.password=test123 \
-          --spring.flyway.enabled=false \
-          --logging.level.root=INFO \
           > app.log 2>&1 &
 
         APP_PID=$!
