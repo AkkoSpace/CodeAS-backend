@@ -258,20 +258,20 @@ jobs:
 
         # 为CI环境创建.env.test.local文件
         echo "📝 创建CI环境配置文件..."
-        cat > .env.test.local << EOF
-        # CI性能测试环境配置
-        SERVER_PORT=26300
-        DB_HOST=localhost
-        DB_PORT=5432
-        DB_USERNAME=test
-        DB_PASSWORD=test123
-        REDIS_HOST=localhost
-        REDIS_PORT=6379
-        REDIS_PASSWORD=
-        JWT_SECRET=dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0
-        ADMIN_USERNAME=admin
-        ADMIN_PASSWORD=admin123
-        EOF
+        cat > .env.test.local << 'EOF'
+# CI性能测试环境配置
+SERVER_PORT=26300
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=test
+DB_PASSWORD=test123
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+JWT_SECRET=dGVzdC1qd3Qtc2VjcmV0LWZvci1wZXJmb3JtYW5jZS10ZXN0
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+EOF
 
         echo "✅ CI环境配置文件已创建"
 

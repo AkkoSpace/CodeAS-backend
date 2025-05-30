@@ -120,12 +120,15 @@ springdoc:
   swagger-ui:
     enabled: false
 
-# 日志配置 - 简化
+# 日志配置 - 调试模式
 logging:
   level:
     root: INFO
-    space.akko: INFO
-    org.springframework: WARN
+    space.akko: DEBUG
+    space.akko.foundation.config.DotenvConfig: DEBUG
+    org.springframework: INFO
+    org.springframework.boot: DEBUG
+    org.springframework.context: DEBUG
     org.hibernate: WARN
     com.baomidou.mybatisplus: WARN
     org.postgresql: WARN
