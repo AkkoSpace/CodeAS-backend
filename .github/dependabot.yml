@@ -8,11 +8,15 @@ updates:
       day: "wednesday"
       time: "09:00"
       timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 10
+    # 限制同时开放的PR数量
+    open-pull-requests-limit: 5
+    # 目标分支设置为dev，避免直接合并到main
+    target-branch: "dev"
     reviewers:
       - "AkkoSpace"
     assignees:
       - "AkkoSpace"
+    # 使用gitmoji编码格式
     commit-message:
       prefix: ":arrow_up:"
       prefix-development: ":arrow_up:"
@@ -20,11 +24,17 @@ updates:
     labels:
       - "dependencies"
       - "java"
+      - "auto-dependency-update"
+    # 更严格的忽略规则
     ignore:
       # 忽略主要版本更新，需要手动处理
       - dependency-name: "org.springframework.boot:*"
         update-types: ["version-update:semver-major"]
       - dependency-name: "org.postgresql:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.openjdk:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "*:sonar-maven-plugin"
         update-types: ["version-update:semver-major"]
 
   # Docker依赖更新
@@ -35,7 +45,9 @@ updates:
       day: "thursday"
       time: "10:00"
       timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    # Docker更新也目标到dev分支
+    target-branch: "dev"
     reviewers:
       - "AkkoSpace"
     assignees:
@@ -47,6 +59,7 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+      - "auto-dependency-update"
 
   # GitHub Actions依赖更新
   - package-ecosystem: "github-actions"
@@ -56,7 +69,9 @@ updates:
       day: "friday"
       time: "11:00"
       timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    # GitHub Actions更新也目标到dev分支
+    target-branch: "dev"
     reviewers:
       - "AkkoSpace"
     assignees:
@@ -68,3 +83,4 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+      - "auto-dependency-update"
