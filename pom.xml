@@ -23,7 +23,7 @@
 
         <!-- Database -->
         <postgresql.version>42.7.2</postgresql.version>
-        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <flyway.version>11.8.2</flyway.version>
 
         <!-- Cache -->
