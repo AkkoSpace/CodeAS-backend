@@ -22,7 +22,7 @@
         <spring-boot.version>3.2.1</spring-boot.version>
 
         <!-- Database -->
-        <postgresql.version>42.7.1</postgresql.version>
+        <postgresql.version>42.7.2</postgresql.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <flyway.version>11.8.2</flyway.version>
 
