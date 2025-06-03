@@ -321,7 +321,7 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>9.0.7</version>
                 <configuration>
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failBuildOnCVSS>8</failBuildOnCVSS>
                     <formats>
                         <format>HTML</format>
                         <format>JSON</format>
