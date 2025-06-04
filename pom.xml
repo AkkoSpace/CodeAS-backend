@@ -320,6 +320,33 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.11.0.3922</version>
+                <configuration>
+                    <!-- 前期开发阶段配置：排除测试文件 -->
+                    <sonar.exclusions>
+                        src/test/**,
+                        **/test/**,
+                        **/*Test.java,
+                        **/*Tests.java,
+                        **/target/**,
+                        **/logs/**
+                    </sonar.exclusions>
+                    <sonar.coverage.exclusions>
+                        src/test/**,
+                        **/test/**,
+                        **/*Test.java,
+                        **/*Tests.java
+                    </sonar.coverage.exclusions>
+                    <sonar.cpd.exclusions>
+                        src/test/**,
+                        **/test/**,
+                        **/*Test.java,
+                        **/*Tests.java
+                    </sonar.cpd.exclusions>
+                    <!-- 只分析主要源代码 -->
+                    <sonar.inclusions>src/main/java/**/*.java</sonar.inclusions>
+                    <sonar.sources>src/main/java</sonar.sources>
+                    <sonar.java.binaries>target/classes</sonar.java.binaries>
+                </configuration>
             </plugin>
 
             <!-- OWASP Dependency Check -->
