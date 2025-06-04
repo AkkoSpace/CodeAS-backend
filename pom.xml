@@ -33,7 +33,7 @@
         <jjwt.version>0.12.6</jjwt.version>
 
         <!-- Documentation -->
-        <springdoc.version>2.3.0</springdoc.version>
+        <springdoc.version>2.8.8</springdoc.version>
 
         <!-- Utils -->
         <hutool.version>5.8.38</hutool.version>
