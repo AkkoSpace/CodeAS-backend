@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="space.akko.platform.permission.repository.PermissionRepository">
+
+    <!-- 权限详情结果映射 -->
+    <resultMap id="PermissionDTOMap" type="space.akko.platform.permission.model.dto.PermissionDTO">
+        <id column="id" property="id"/>
+        <result column="resource_code" property="resourceCode"/>
+        <result column="resource_name" property="resourceName"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="resource_url" property="resourceUrl"/>
+        <result column="http_method" property="httpMethod"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="parent_resource_name" property="parentResourceName"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="description" property="description"/>
+        <result column="is_active" property="isActive"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <collection property="actions" ofType="space.akko.platform.permission.model.dto.PermissionDTO$ActionInfo">
+            <id column="action_id" property="id"/>
+            <result column="action_code" property="actionCode"/>
+            <result column="action_name" property="actionName"/>
+            <result column="action_description" property="description"/>
+            <result column="action_is_active" property="isActive"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据资源编码查找权限 -->
+    <select id="findByResourceCode" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT * FROM platform_schema.permission_resource 
+        WHERE resource_code = #{resourceCode} AND is_deleted = false
+    </select>
+
+    <!-- 检查资源编码是否存在 -->
+    <select id="existsByResourceCode" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.permission_resource 
+        WHERE resource_code = #{resourceCode} AND is_deleted = false
+    </select>
+
+    <!-- 分页查询权限 -->
+    <select id="selectPermissionPage" resultMap="PermissionDTOMap">
+        SELECT 
+            pr.id,
+            pr.resource_code,
+            pr.resource_name,
+            pr.resource_type,
+            pr.resource_url,
+            pr.http_method,
+            pr.parent_id,
+            parent.resource_name as parent_resource_name,
+            pr.sort_order,
+            pr.description,
+            pr.is_active,
+            pr.created_at,
+            pr.updated_at,
+            pa.id as action_id,
+            pa.action_code,
+            pa.action_name,
+            pa.description as action_description,
+            pa.is_active as action_is_active
+        FROM platform_schema.permission_resource pr
+        LEFT JOIN platform_schema.permission_resource parent ON pr.parent_id = parent.id AND parent.is_deleted = false
+        LEFT JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id AND rpm.is_deleted = false
+        LEFT JOIN platform_schema.permission_action pa ON rpm.action_id = pa.id AND pa.is_deleted = false
+        WHERE pr.is_deleted = false
+        <if test="query.resourceCode != null and query.resourceCode != ''">
+            AND pr.resource_code LIKE CONCAT('%', #{query.resourceCode}, '%')
+        </if>
+        <if test="query.resourceName != null and query.resourceName != ''">
+            AND pr.resource_name LIKE CONCAT('%', #{query.resourceName}, '%')
+        </if>
+        <if test="query.resourceType != null and query.resourceType != ''">
+            AND pr.resource_type = #{query.resourceType}
+        </if>
+        <if test="query.resourceUrl != null and query.resourceUrl != ''">
+            AND pr.resource_url LIKE CONCAT('%', #{query.resourceUrl}, '%')
+        </if>
+        <if test="query.httpMethod != null and query.httpMethod != ''">
+            AND pr.http_method = #{query.httpMethod}
+        </if>
+        <if test="query.parentId != null">
+            AND pr.parent_id = #{query.parentId}
+        </if>
+        <if test="query.isActive != null">
+            AND pr.is_active = #{query.isActive}
+        </if>
+        <if test="query.createdAtStart != null">
+            AND pr.created_at >= #{query.createdAtStart}
+        </if>
+        <if test="query.createdAtEnd != null">
+            AND pr.created_at &lt;= #{query.createdAtEnd}
+        </if>
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (pr.resource_code LIKE CONCAT('%', #{query.keyword}, '%')
+                OR pr.resource_name LIKE CONCAT('%', #{query.keyword}, '%')
+                OR pr.description LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+        ORDER BY 
+        <choose>
+            <when test="query.sortField != null and query.sortField != ''">
+                ${query.sortField}
+            </when>
+            <otherwise>
+                pr.sort_order
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="query.sortOrder != null and query.sortOrder.toLowerCase() == 'desc'">
+                DESC
+            </when>
+            <otherwise>
+                ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据权限ID查询权限详情 -->
+    <select id="selectPermissionDetailById" resultMap="PermissionDTOMap">
+        SELECT 
+            pr.id,
+            pr.resource_code,
+            pr.resource_name,
+            pr.resource_type,
+            pr.resource_url,
+            pr.http_method,
+            pr.parent_id,
+            parent.resource_name as parent_resource_name,
+            pr.sort_order,
+            pr.description,
+            pr.is_active,
+            pr.created_at,
+            pr.updated_at,
+            pa.id as action_id,
+            pa.action_code,
+            pa.action_name,
+            pa.description as action_description,
+            pa.is_active as action_is_active
+        FROM platform_schema.permission_resource pr
+        LEFT JOIN platform_schema.permission_resource parent ON pr.parent_id = parent.id AND parent.is_deleted = false
+        LEFT JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id AND rpm.is_deleted = false
+        LEFT JOIN platform_schema.permission_action pa ON rpm.action_id = pa.id AND pa.is_deleted = false
+        WHERE pr.id = #{permissionId} AND pr.is_deleted = false
+    </select>
+
+    <!-- 查询权限树（层级结构） -->
+    <select id="selectPermissionTree" resultMap="PermissionDTOMap">
+        SELECT 
+            pr.id,
+            pr.resource_code,
+            pr.resource_name,
+            pr.resource_type,
+            pr.resource_url,
+            pr.http_method,
+            pr.parent_id,
+            parent.resource_name as parent_resource_name,
+            pr.sort_order,
+            pr.description,
+            pr.is_active,
+            pr.created_at,
+            pr.updated_at
+        FROM platform_schema.permission_resource pr
+        LEFT JOIN platform_schema.permission_resource parent ON pr.parent_id = parent.id AND parent.is_deleted = false
+        WHERE pr.is_deleted = false
+        <if test="parentId != null">
+            AND pr.parent_id = #{parentId}
+        </if>
+        ORDER BY pr.sort_order ASC, pr.created_at ASC
+    </select>
+
+    <!-- 根据角色ID查询权限列表 -->
+    <select id="selectPermissionsByRoleId" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT DISTINCT pr.*
+        FROM platform_schema.permission_resource pr
+        INNER JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id
+        WHERE rpm.role_id = #{roleId} 
+            AND rpm.is_granted = true 
+            AND pr.is_deleted = false 
+            AND rpm.is_deleted = false
+            AND pr.is_active = true
+        ORDER BY pr.sort_order ASC
+    </select>
+
+    <!-- 根据用户ID查询权限列表 -->
+    <select id="selectPermissionsByUserId" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT DISTINCT pr.*
+        FROM platform_schema.permission_resource pr
+        INNER JOIN platform_schema.role_permission_mapping rpm ON pr.id = rpm.resource_id
+        INNER JOIN platform_schema.user_role_mapping urm ON rpm.role_id = urm.role_id
+        WHERE urm.user_id = #{userId} 
+            AND rpm.is_granted = true 
+            AND pr.is_deleted = false 
+            AND rpm.is_deleted = false 
+            AND urm.is_deleted = false
+            AND pr.is_active = true
+            AND (urm.expires_at IS NULL OR urm.expires_at > NOW())
+        ORDER BY pr.sort_order ASC
+    </select>
+
+    <!-- 查询子权限列表 -->
+    <select id="selectChildPermissions" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT * FROM platform_schema.permission_resource 
+        WHERE parent_id = #{parentId} AND is_deleted = false
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 查询所有父权限ID（递归） -->
+    <select id="selectParentPermissionIds" resultType="long">
+        WITH RECURSIVE parent_permissions AS (
+            SELECT id, parent_id, resource_code
+            FROM platform_schema.permission_resource
+            WHERE id = #{permissionId} AND is_deleted = false
+            
+            UNION ALL
+            
+            SELECT pr.id, pr.parent_id, pr.resource_code
+            FROM platform_schema.permission_resource pr
+            INNER JOIN parent_permissions pp ON pr.id = pp.parent_id
+            WHERE pr.is_deleted = false
+        )
+        SELECT id FROM parent_permissions WHERE id != #{permissionId}
+    </select>
+
+    <!-- 查询所有子权限ID（递归） -->
+    <select id="selectChildPermissionIds" resultType="long">
+        WITH RECURSIVE child_permissions AS (
+            SELECT id, parent_id, resource_code
+            FROM platform_schema.permission_resource
+            WHERE id = #{permissionId} AND is_deleted = false
+            
+            UNION ALL
+            
+            SELECT pr.id, pr.parent_id, pr.resource_code
+            FROM platform_schema.permission_resource pr
+            INNER JOIN child_permissions cp ON pr.parent_id = cp.id
+            WHERE pr.is_deleted = false
+        )
+        SELECT id FROM child_permissions WHERE id != #{permissionId}
+    </select>
+
+    <!-- 批量更新权限状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE platform_schema.permission_resource 
+        SET is_active = #{isActive}, updated_at = NOW()
+        WHERE id IN
+        <foreach collection="permissionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND is_deleted = false
+    </update>
+
+    <!-- 检查权限是否可以删除（没有子权限和角色关联） -->
+    <select id="canDelete" resultType="boolean">
+        SELECT NOT EXISTS (
+            SELECT 1 FROM platform_schema.permission_resource 
+            WHERE parent_id = #{permissionId} AND is_deleted = false
+        ) AND NOT EXISTS (
+            SELECT 1 FROM platform_schema.role_permission_mapping 
+            WHERE resource_id = #{permissionId} AND is_deleted = false
+        )
+    </select>
+
+    <!-- 根据资源类型查询权限 -->
+    <select id="selectPermissionsByType" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT * FROM platform_schema.permission_resource 
+        WHERE resource_type = #{resourceType} AND is_deleted = false
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 根据URL和方法查询权限 -->
+    <select id="findByUrlAndMethod" resultType="space.akko.platform.permission.model.entity.PermissionResource">
+        SELECT * FROM platform_schema.permission_resource 
+        WHERE resource_url = #{resourceUrl} 
+            AND http_method = #{httpMethod} 
+            AND is_deleted = false
+        LIMIT 1
+    </select>
+
+</mapper>
