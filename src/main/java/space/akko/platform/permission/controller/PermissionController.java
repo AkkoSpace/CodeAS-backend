@@ -38,7 +38,7 @@ public class PermissionController {
     @PostMapping
     @Operation(summary = "创建权限", description = "创建新的权限资源")
     @RequirePermission("PERMISSION_CREATE")
-    @OperationLog(operation = "创建权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "创建权限", resourceType = "PERMISSION")
     public Result<PermissionVO> createPermission(
             @Valid @RequestBody PermissionCreateRequest request) {
         
@@ -49,7 +49,7 @@ public class PermissionController {
     @PutMapping("/{permissionId}")
     @Operation(summary = "更新权限", description = "更新指定权限的信息")
     @RequirePermission("PERMISSION_UPDATE")
-    @OperationLog(operation = "更新权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "更新权限", resourceType = "PERMISSION")
     public Result<PermissionVO> updatePermission(
             @Parameter(description = "权限ID") @PathVariable Long permissionId,
             @Valid @RequestBody PermissionCreateRequest request) {
@@ -61,7 +61,7 @@ public class PermissionController {
     @DeleteMapping("/{permissionId}")
     @Operation(summary = "删除权限", description = "删除指定的权限")
     @RequirePermission("PERMISSION_DELETE")
-    @OperationLog(operation = "删除权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "删除权限", resourceType = "PERMISSION")
     public Result<Void> deletePermission(
             @Parameter(description = "权限ID") @PathVariable Long permissionId) {
         
@@ -72,7 +72,7 @@ public class PermissionController {
     @DeleteMapping("/batch")
     @Operation(summary = "批量删除权限", description = "批量删除多个权限")
     @RequirePermission("PERMISSION_DELETE")
-    @OperationLog(operation = "批量删除权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "批量删除权限", resourceType = "PERMISSION")
     public Result<Void> batchDeletePermissions(
             @Parameter(description = "权限ID列表") @RequestBody List<Long> permissionIds) {
         
@@ -132,7 +132,7 @@ public class PermissionController {
     @PatchMapping("/{permissionId}/status")
     @Operation(summary = "更新权限状态", description = "启用或禁用指定权限")
     @RequirePermission("PERMISSION_UPDATE")
-    @OperationLog(operation = "更新权限状态", resourceType = "PERMISSION")
+    @OperationLog(operationName = "更新权限状态", resourceType = "PERMISSION")
     public Result<Void> updatePermissionStatus(
             @Parameter(description = "权限ID") @PathVariable Long permissionId,
             @Parameter(description = "是否激活") @RequestParam Boolean isActive) {
@@ -144,7 +144,7 @@ public class PermissionController {
     @PatchMapping("/batch/status")
     @Operation(summary = "批量更新权限状态", description = "批量启用或禁用权限")
     @RequirePermission("PERMISSION_UPDATE")
-    @OperationLog(operation = "批量更新权限状态", resourceType = "PERMISSION")
+    @OperationLog(operationName = "批量更新权限状态", resourceType = "PERMISSION")
     public Result<Void> batchUpdatePermissionStatus(
             @Parameter(description = "权限ID列表") @RequestBody List<Long> permissionIds,
             @Parameter(description = "是否激活") @RequestParam Boolean isActive) {
@@ -206,7 +206,7 @@ public class PermissionController {
     @PatchMapping("/{permissionId}/move")
     @Operation(summary = "移动权限", description = "将权限移动到新的父权限下")
     @RequirePermission("PERMISSION_UPDATE")
-    @OperationLog(operation = "移动权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "移动权限", resourceType = "PERMISSION")
     public Result<Void> movePermission(
             @Parameter(description = "权限ID") @PathVariable Long permissionId,
             @Parameter(description = "新父权限ID") @RequestParam Long newParentId) {
@@ -239,7 +239,7 @@ public class PermissionController {
     @PostMapping("/sync/api")
     @Operation(summary = "同步API权限", description = "扫描Controller注解自动创建或更新API权限")
     @RequirePermission("PERMISSION_SYNC")
-    @OperationLog(operation = "同步API权限", resourceType = "PERMISSION")
+    @OperationLog(operationName = "同步API权限", resourceType = "PERMISSION")
     public Result<Void> syncApiPermissions() {
         
         permissionService.syncApiPermissions();

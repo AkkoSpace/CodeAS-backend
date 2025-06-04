@@ -53,6 +53,11 @@ public interface UserRoleMappingRepository extends BaseMapper<UserRoleMapping> {
     int deleteByUserIdAndRoleId(@Param("userId") Long userId, @Param("roleId") Long roleId);
 
     /**
+     * 批量删除角色的指定用户关联
+     */
+    int batchDeleteByRoleIdAndUserIds(@Param("roleId") Long roleId, @Param("userIds") List<Long> userIds);
+
+    /**
      * 批量插入用户角色关联
      */
     int batchInsert(@Param("mappings") List<UserRoleMapping> mappings);
@@ -69,6 +74,11 @@ public interface UserRoleMappingRepository extends BaseMapper<UserRoleMapping> {
      * 查询过期的角色关联
      */
     List<UserRoleMapping> selectExpiredMappings();
+
+    /**
+     * 删除过期的角色关联
+     */
+    int deleteExpiredMappings();
 
     /**
      * 批量更新角色关联状态

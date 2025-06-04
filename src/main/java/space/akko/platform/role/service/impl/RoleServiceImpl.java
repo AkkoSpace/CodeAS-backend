@@ -17,6 +17,7 @@ import space.akko.platform.role.model.dto.RoleDTO;
 import space.akko.platform.role.model.entity.RoleDefinition;
 import space.akko.platform.role.model.entity.UserRoleMapping;
 import space.akko.platform.role.model.request.RoleCreateRequest;
+import space.akko.platform.role.model.request.RoleUpdateRequest;
 import space.akko.platform.role.model.request.RoleQueryRequest;
 import space.akko.platform.role.model.vo.RoleVO;
 import space.akko.platform.role.repository.RoleRepository;
@@ -68,7 +69,6 @@ public class RoleServiceImpl implements RoleService {
         role.setRoleName(request.getRoleName());
         role.setParentId(request.getParentId());
         role.setRoleLevel(request.getRoleLevel());
-        role.setSortOrder(request.getSortOrder());
         role.setDescription(request.getDescription());
         role.setIsActive(request.getIsActive());
 
@@ -82,17 +82,14 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
-    public RoleVO updateRole(Long roleId, RoleCreateRequest request) {
+    public RoleVO updateRole(Long roleId, RoleUpdateRequest request) {
         // 检查角色是否存在
         RoleDefinition role = roleRepository.selectById(roleId);
         if (role == null) {
             throw new BusinessException(ResultCode.DATA_NOT_FOUND, "角色不存在");
         }
 
-        // 检查角色编码是否已被其他角色使用
-        if (!role.getRoleCode().equals(request.getRoleCode()) && existsByRoleCode(request.getRoleCode())) {
-            throw new BusinessException(ResultCode.DATA_ALREADY_EXISTS, "角色编码已存在");
-        }
+        // 角色编码不允许修改，跳过编码检查
 
         // 验证父角色（不能设置自己为父角色）
         if (request.getParentId() != null && 
@@ -110,12 +107,10 @@ public class RoleServiceImpl implements RoleService {
             }
         }
 
-        // 更新角色信息
-        role.setRoleCode(request.getRoleCode());
+        // 更新角色信息（角色编码不允许修改）
         role.setRoleName(request.getRoleName());
         role.setParentId(request.getParentId());
         role.setRoleLevel(request.getRoleLevel());
-        role.setSortOrder(request.getSortOrder());
         role.setDescription(request.getDescription());
         role.setIsActive(request.getIsActive());
 
@@ -188,8 +183,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PageResult<RoleVO> getRolePage(Object request) {
-        RoleQueryRequest queryRequest = (RoleQueryRequest) request;
+    public PageResult<RoleVO> getRolePage(RoleQueryRequest request) {
+        RoleQueryRequest queryRequest = request;
         Page<RoleDTO> page = new Page<>(queryRequest.getCurrent(), queryRequest.getSize());
         IPage<RoleDTO> result = roleRepository.selectRolePage(page, queryRequest);
         
@@ -244,59 +239,11 @@ public class RoleServiceImpl implements RoleService {
         log.info("批量更新角色状态成功，数量: {}, 状态: {}", updatedCount, isActive ? "启用" : "禁用");
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
-    public void assignUsersToRole(Long roleId, List<Long> userIds, LocalDateTime expiresAt) {
-        // 检查角色是否存在
-        RoleDefinition role = roleRepository.selectById(roleId);
-        if (role == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "角色不存在");
-        }
 
-        if (userIds != null && !userIds.isEmpty()) {
-            List<UserRoleMapping> mappings = new ArrayList<>();
-            
-            for (Long userId : userIds) {
-                // 检查是否已存在映射
-                if (!userRoleMappingRepository.existsByUserIdAndRoleId(userId, roleId)) {
-                    UserRoleMapping mapping = new UserRoleMapping();
-                    mapping.setUserId(userId);
-                    mapping.setRoleId(roleId);
-                    mapping.setExpiresAt(expiresAt);
-                    mappings.add(mapping);
-                }
-            }
-            
-            if (!mappings.isEmpty()) {
-                userRoleMappingRepository.batchInsert(mappings);
-            }
-        }
-
-        log.info("角色用户分配成功: roleId={}, userCount={}", roleId, 
-                userIds != null ? userIds.size() : 0);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
-    public void removeUsersFromRole(Long roleId, List<Long> userIds) {
-        // 检查角色是否存在
-        RoleDefinition role = roleRepository.selectById(roleId);
-        if (role == null) {
-            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "角色不存在");
-        }
-
-        if (userIds != null && !userIds.isEmpty()) {
-            userRoleMappingRepository.batchDeleteByRoleIdAndUserIds(roleId, userIds);
-            
-            log.info("角色用户移除成功: roleId={}, userCount={}", roleId, userIds.size());
-        }
-    }
 
     @Override
     @Cacheable(value = CacheConstants.ROLE_CACHE, key = "'user:' + #userId")
-    public List<RoleDefinition> getRolesByUserId(Long userId) {
+    public List<RoleDefinition> getUserRoles(Long userId) {
         return roleRepository.selectRolesByUserId(userId);
     }
 
@@ -308,6 +255,77 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public boolean canDeleteRole(Long roleId) {
         return roleRepository.canDelete(roleId);
+    }
+
+    @Override
+    @Cacheable(value = CacheConstants.ROLE_CACHE, key = "'userCount:' + #roleId")
+    public Long getRoleUserCount(Long roleId) {
+        return roleRepository.countUsersByRoleId(roleId);
+    }
+
+    @Override
+    @Cacheable(value = CacheConstants.ROLE_CACHE, key = "'permissions:' + #roleId")
+    public List<String> getRolePermissions(Long roleId) {
+        return roleRepository.selectRolePermissions(roleId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
+    public void assignRolesToUser(Long userId, List<Long> roleIds) {
+        if (roleIds != null && !roleIds.isEmpty()) {
+            List<UserRoleMapping> mappings = new ArrayList<>();
+
+            for (Long roleId : roleIds) {
+                // 检查是否已存在映射
+                if (!userRoleMappingRepository.existsByUserIdAndRoleId(userId, roleId)) {
+                    UserRoleMapping mapping = new UserRoleMapping();
+                    mapping.setUserId(userId);
+                    mapping.setRoleId(roleId);
+                    mappings.add(mapping);
+                }
+            }
+
+            if (!mappings.isEmpty()) {
+                userRoleMappingRepository.batchInsert(mappings);
+            }
+        }
+
+        log.info("用户角色分配成功: userId={}, roleCount={}", userId,
+                roleIds != null ? roleIds.size() : 0);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
+    public void removeRolesFromUser(Long userId, List<Long> roleIds) {
+        if (roleIds != null && !roleIds.isEmpty()) {
+            for (Long roleId : roleIds) {
+                userRoleMappingRepository.deleteByUserIdAndRoleId(userId, roleId);
+            }
+
+            log.info("用户角色移除成功: userId={}, roleCount={}", userId, roleIds.size());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
+    public void setUserRoleEffectiveTime(Long userId, Long roleId,
+                                       LocalDateTime effectiveFrom, LocalDateTime effectiveTo) {
+        // 查找现有的用户角色映射
+        UserRoleMapping mapping = userRoleMappingRepository.findByUserIdAndRoleId(userId, roleId);
+        if (mapping == null) {
+            throw new BusinessException(ResultCode.DATA_NOT_FOUND, "用户角色关联不存在");
+        }
+
+        // 更新有效期
+        mapping.setEffectiveFrom(effectiveFrom);
+        mapping.setEffectiveTo(effectiveTo);
+        userRoleMappingRepository.updateById(mapping);
+
+        log.info("设置用户角色有效期成功: userId={}, roleId={}, from={}, to={}",
+                userId, roleId, effectiveFrom, effectiveTo);
     }
 
     // 需要继续实现的方法...
@@ -437,7 +455,6 @@ public class RoleServiceImpl implements RoleService {
         newRole.setRoleName(newRoleName);
         newRole.setParentId(sourceRole.getParentId());
         newRole.setRoleLevel(sourceRole.getRoleLevel());
-        newRole.setSortOrder(sourceRole.getSortOrder());
         newRole.setDescription("复制自: " + sourceRole.getDescription());
         newRole.setIsActive(sourceRole.getIsActive());
 
@@ -463,6 +480,16 @@ public class RoleServiceImpl implements RoleService {
 
         log.info("复制角色成功: {} -> {}", sourceRole.getRoleCode(), newRole.getRoleCode());
         return convertEntityToVO(newRole);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = CacheConstants.ROLE_CACHE, allEntries = true)
+    public void cleanExpiredRoleMappings() {
+        // 删除过期的用户角色关联
+        int deletedCount = userRoleMappingRepository.deleteExpiredMappings();
+
+        log.info("清理过期角色关联完成，删除数量: {}", deletedCount);
     }
 
     /**
@@ -506,8 +533,8 @@ public class RoleServiceImpl implements RoleService {
         vo.setRoleName(entity.getRoleName());
         vo.setParentId(entity.getParentId());
         vo.setRoleLevel(entity.getRoleLevel());
-        vo.setSortOrder(entity.getSortOrder());
         vo.setDescription(entity.getDescription());
+        vo.setIsSystem(entity.getIsSystem());
         vo.setIsActive(entity.getIsActive());
         vo.setStatusName(entity.getIsActive() ? "正常" : "禁用");
         vo.setCreatedAt(entity.getCreatedAt());
@@ -526,14 +553,13 @@ public class RoleServiceImpl implements RoleService {
         vo.setParentId(dto.getParentId());
         vo.setParentRoleName(dto.getParentRoleName());
         vo.setRoleLevel(dto.getRoleLevel());
-        vo.setSortOrder(dto.getSortOrder());
         vo.setDescription(dto.getDescription());
+        vo.setIsSystem(dto.getIsSystem());
         vo.setIsActive(dto.getIsActive());
         vo.setStatusName(dto.getIsActive() ? "正常" : "禁用");
         vo.setCreatedAt(dto.getCreatedAt());
         vo.setUpdatedAt(dto.getUpdatedAt());
         vo.setUserCount(dto.getUserCount());
-        vo.setPermissionCount(dto.getPermissionCount());
         return vo;
     }
 }
