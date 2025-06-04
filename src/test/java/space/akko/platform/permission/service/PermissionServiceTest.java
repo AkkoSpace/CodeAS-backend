@@ -367,6 +367,22 @@ class PermissionServiceTest {
     }
 
     @Test
+    @DisplayName("根据资源类型获取权限列表 - 成功")
+    void getPermissionsByType_Success() {
+        // Given
+        String resourceType = "API";
+        when(permissionRepository.selectPermissionsByType(resourceType)).thenReturn(Arrays.asList(testPermission));
+
+        // When
+        List<PermissionResource> result = permissionService.getPermissionsByType(resourceType);
+
+        // Then
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        verify(permissionRepository).selectPermissionsByType(resourceType);
+    }
+
+    @Test
     @DisplayName("检查资源编码是否存在 - 存在")
     void existsByResourceCode_Exists() {
         // Given
