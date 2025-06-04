@@ -80,18 +80,19 @@ mvn spring-boot:run
 | 技术 | 版本 | 用途 |
 |------|------|------|
 | Java | 21 | 编程语言 |
-| Spring Boot | 3.2.1 | 应用框架 |
+| Spring Boot | 3.5.0 | 应用框架 |
 | PostgreSQL | 15-alpine | 主数据库 |
 | Redis | 7-alpine | 缓存数据库 |
-| MyBatis Plus | 3.5.5 | ORM框架 |
-| Flyway | 11.8.3 | 数据库迁移 |
+| MyBatis Plus | 3.5.12 | ORM框架 |
+| Flyway | 11.9.0 | 数据库迁移 |
 | Caffeine | 3.1.8 | 本地缓存 |
-| JWT (JJWT) | 0.12.3 | 认证令牌 |
-| SpringDoc | 2.3.0 | API文档 |
-| Lombok | - | 代码简化 |
+| JWT (JJWT) | 0.12.6 | 认证令牌 |
+| SpringDoc | 2.8.8 | API文档 |
+| Lombok | 1.18.30 | 代码简化 |
 | Hutool | 5.8.38 | 工具库 |
-| Commons Lang3 | 3.14.0 | 工具库 |
-| PostgreSQL Driver | 42.7.1 | 数据库驱动 |
+| Commons Lang3 | 3.17.0 | 工具库 |
+| PostgreSQL Driver | 42.7.2 | 数据库驱动 |
+| Dotenv Java | 3.2.0 | 环境变量管理 |
 
 ## 📁 项目结构
 
