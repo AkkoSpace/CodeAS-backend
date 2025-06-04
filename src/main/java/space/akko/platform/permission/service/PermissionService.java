@@ -4,6 +4,7 @@ import space.akko.foundation.common.PageResult;
 import space.akko.platform.permission.model.dto.PermissionDTO;
 import space.akko.platform.permission.model.entity.PermissionResource;
 import space.akko.platform.permission.model.request.PermissionCreateRequest;
+import space.akko.platform.permission.model.request.PermissionQueryRequest;
 import space.akko.platform.permission.model.vo.PermissionVO;
 
 import java.util.List;
@@ -49,7 +50,7 @@ public interface PermissionService {
     /**
      * 分页查询权限
      */
-    PageResult<PermissionVO> getPermissionPage(Object request);
+    PageResult<PermissionVO> getPermissionPage(PermissionQueryRequest request);
 
     /**
      * 获取权限树
