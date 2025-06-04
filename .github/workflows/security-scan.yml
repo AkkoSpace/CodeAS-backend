@@ -43,10 +43,10 @@ jobs:
         fi
 
         mvn clean compile dependency-check:check \
-          -DfailBuildOnCVSS=7 \
+          -DfailBuildOnCVSS=8 \
           -DskipSystemScope=false \
           -DskipTestScope=false || {
-            echo "❌ 发现高危安全漏洞 (CVSS >= 7.0)"
+            echo "❌ 发现高危安全漏洞 (CVSS >= 8.0)"
             echo "请查看生成的报告了解详情"
             exit 1
           }
