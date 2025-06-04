@@ -1,10 +1,11 @@
 package space.akko;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 基础应用测试类
- * 保持Maven测试结构完整，等功能完善后再添加具体测试
+ * 简单的单元测试，不加载Spring上下文，确保CI环境正常运行
  *
  * @author akko
  * @since 1.0.0
@@ -12,8 +13,15 @@ import org.junit.jupiter.api.Test;
 class BackendApplicationTests {
 
     @Test
-    void contextLoads() {
+    void basicTest() {
         // 基础测试，确保测试框架正常工作
-        // 等功能开发完成后再添加具体的测试逻辑
+        assertTrue(true, "基础测试应该通过");
+    }
+
+    @Test
+    void javaVersionTest() {
+        // 验证Java版本
+        String javaVersion = System.getProperty("java.version");
+        assertTrue(javaVersion.startsWith("21"), "应该使用Java 21");
     }
 }

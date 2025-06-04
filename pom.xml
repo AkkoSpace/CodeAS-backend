@@ -22,12 +22,12 @@
         <spring-boot.version>3.5.0</spring-boot.version>
 
         <!-- Database -->
-        <postgresql.version>42.7.2</postgresql.version>
+        <postgresql.version>42.7.6</postgresql.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <flyway.version>11.9.0</flyway.version>
 
         <!-- Cache -->
-        <caffeine.version>3.1.8</caffeine.version>
+        <caffeine.version>3.2.0</caffeine.version>
 
         <!-- JWT -->
         <jjwt.version>0.12.6</jjwt.version>
@@ -43,7 +43,7 @@
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
 
         <!-- Lombok -->
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -319,7 +319,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.10.0.2594</version>
+                <version>3.11.0.3922</version>
             </plugin>
 
             <!-- OWASP Dependency Check -->
