@@ -52,10 +52,11 @@ CodeAS Backend 是 akko.space 网站的后端服务项目，基于 Spring Boot 3
 | Redis | 7+     | 缓存数据库 |
 | MyBatis Plus | 3.5.12 | ORM框架 |
 | Flyway | 11.9.0 | 数据库迁移 |
-| Caffeine | 3.1.8  | 本地缓存 |
+| Caffeine | 3.2.0  | 本地缓存 |
 | JWT | 0.12.6 | 认证令牌 |
 | SpringDoc | 2.8.8  | API文档 |
 | Dotenv Java | 3.2.0  | 环境变量管理 |
+| Lombok | 1.18.38 | 代码生成工具 |
 | Docker | -      | 容器化 |
 
 ## 快速开始
