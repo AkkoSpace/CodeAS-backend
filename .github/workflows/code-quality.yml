@@ -35,7 +35,7 @@ jobs:
         restore-keys: ${{ runner.os }}-sonar
 
     - name: 🧪 Run tests with coverage
-      run: mvn clean verify
+      run: mvn clean verify -Dspring.profiles.active=test
 
     - name: 📊 SonarCloud Scan
       env:
