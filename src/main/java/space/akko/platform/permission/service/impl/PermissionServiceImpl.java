@@ -211,8 +211,8 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public PageResult<PermissionVO> getPermissionPage(Object request) {
-        PermissionQueryRequest queryRequest = (PermissionQueryRequest) request;
+    public PageResult<PermissionVO> getPermissionPage(PermissionQueryRequest request) {
+        PermissionQueryRequest queryRequest = request;
         Page<PermissionDTO> page = new Page<>(queryRequest.getCurrent(), queryRequest.getSize());
         IPage<PermissionDTO> result = permissionRepository.selectPermissionPage(page, queryRequest);
         

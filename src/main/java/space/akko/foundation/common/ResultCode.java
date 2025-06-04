@@ -63,6 +63,8 @@ public enum ResultCode {
     DATA_ALREADY_EXISTS(1402, "数据已存在"),
     DATA_INTEGRITY_VIOLATION(1403, "数据完整性约束违反"),
     OPTIMISTIC_LOCK_FAILURE(1404, "数据已被其他用户修改"),
+    INVALID_PARAMETER(1405, "参数无效"),
+    OPERATION_NOT_ALLOWED(1406, "操作不被允许"),
     
     // 文件相关错误 15xx
     FILE_NOT_FOUND(1501, "文件不存在"),
@@ -86,7 +88,8 @@ public enum ResultCode {
     // 系统相关错误 19xx
     SYSTEM_BUSY(1901, "系统繁忙，请稍后重试"),
     SYSTEM_MAINTENANCE(1902, "系统维护中"),
-    RATE_LIMIT_EXCEEDED(1903, "访问频率超出限制");
+    RATE_LIMIT_EXCEEDED(1903, "访问频率超出限制"),
+    NOT_IMPLEMENTED(1904, "功能未实现");
 
     /**
      * 状态码
