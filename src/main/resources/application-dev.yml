@@ -29,8 +29,11 @@ logging:
   level:
     root: INFO
     space.akko: DEBUG
+    space.akko.foundation.aspect: DEBUG
+    space.akko.foundation.exception: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
+    org.springdoc: DEBUG
     com.baomidou.mybatisplus: DEBUG
     org.springframework.cache: DEBUG
   pattern:

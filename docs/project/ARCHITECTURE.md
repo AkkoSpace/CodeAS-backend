@@ -341,20 +341,21 @@
 
 | 层级 | 技术 | 版本 | 说明 |
 |------|------|------|------|
-| 应用框架 | Spring Boot | 3.2.1 | 主框架 |
+| 应用框架 | Spring Boot | 3.5.0 | 主框架 |
 | 编程语言 | Java | 21 | LTS版本 |
 | 数据库 | PostgreSQL | 15-alpine | 主数据库 |
 | 缓存 | Redis | 7-alpine | 分布式缓存 |
 | 本地缓存 | Caffeine | 3.1.8 | 高性能本地缓存 |
-| ORM框架 | MyBatis Plus | 3.5.5 | 数据访问层 |
-| 数据库迁移 | Flyway | 11.8.3 | 版本控制 |
+| ORM框架 | MyBatis Plus | 3.5.12 | 数据访问层 |
+| 数据库迁移 | Flyway | 11.9.0 | 版本控制 |
 | 安全框架 | Spring Security | 6.x | 安全认证 |
-| JWT | JJWT | 0.12.3 | 令牌处理 |
-| API文档 | SpringDoc | 2.3.0 | OpenAPI 3.0 |
+| JWT | JJWT | 0.12.6 | 令牌处理 |
+| API文档 | SpringDoc | 2.8.8 | OpenAPI 3.0 |
 | 工具库 | Hutool | 5.8.38 | 工具集合 |
-| 工具库 | Commons Lang3 | 3.14.0 | 工具集合 |
-| 数据库驱动 | PostgreSQL Driver | 42.7.1 | 数据库连接 |
-| 代码简化 | Lombok | - | 注解处理器 |
+| 工具库 | Commons Lang3 | 3.17.0 | 工具集合 |
+| 数据库驱动 | PostgreSQL Driver | 42.7.2 | 数据库连接 |
+| 环境变量管理 | Dotenv Java | 3.2.0 | 配置管理 |
+| 代码简化 | Lombok | 1.18.30 | 注解处理器 |
 | 构建工具 | Maven | 3.8+ | 项目管理 |
 | 容器化 | Docker | 20+ | 容器部署 |
 
