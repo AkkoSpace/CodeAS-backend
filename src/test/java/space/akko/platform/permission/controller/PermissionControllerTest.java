@@ -15,7 +15,7 @@ import space.akko.foundation.common.PageResult;
 import space.akko.foundation.common.Result;
 import space.akko.platform.permission.model.dto.PermissionCreateRequest;
 import space.akko.platform.permission.model.dto.PermissionQueryRequest;
-import space.akko.platform.permission.model.dto.PermissionUpdateRequest;
+
 import space.akko.platform.permission.model.entity.PermissionResource;
 import space.akko.platform.permission.model.vo.PermissionVO;
 import space.akko.platform.permission.service.PermissionService;
@@ -82,10 +82,10 @@ class PermissionControllerTest {
     void updatePermission_Success() throws Exception {
         // Given
         Long permissionId = 1L;
-        PermissionUpdateRequest request = createPermissionUpdateRequest();
+        PermissionCreateRequest request = createPermissionUpdateRequest();
         PermissionVO expectedVO = createPermissionVO();
-        
-        when(permissionService.updatePermission(eq(permissionId), any(PermissionUpdateRequest.class)))
+
+        when(permissionService.updatePermission(eq(permissionId), any(PermissionCreateRequest.class)))
                 .thenReturn(expectedVO);
 
         // When & Then
@@ -96,7 +96,7 @@ class PermissionControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(expectedVO.getId()));
 
-        verify(permissionService).updatePermission(eq(permissionId), any(PermissionUpdateRequest.class));
+        verify(permissionService).updatePermission(eq(permissionId), any(PermissionCreateRequest.class));
     }
 
     @Test
@@ -278,8 +278,9 @@ class PermissionControllerTest {
         return request;
     }
 
-    private PermissionUpdateRequest createPermissionUpdateRequest() {
-        PermissionUpdateRequest request = new PermissionUpdateRequest();
+    private PermissionCreateRequest createPermissionUpdateRequest() {
+        PermissionCreateRequest request = new PermissionCreateRequest();
+        request.setResourceCode("USER_MANAGEMENT");
         request.setResourceName("用户管理(更新)");
         request.setResourceType("API");
         request.setResourceUrl("/api/users");

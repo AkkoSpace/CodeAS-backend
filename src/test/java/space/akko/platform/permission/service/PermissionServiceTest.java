@@ -14,7 +14,7 @@ import space.akko.foundation.exception.BusinessException;
 import space.akko.platform.permission.model.dto.PermissionCreateRequest;
 import space.akko.platform.permission.model.dto.PermissionDTO;
 import space.akko.platform.permission.model.dto.PermissionQueryRequest;
-import space.akko.platform.permission.model.dto.PermissionUpdateRequest;
+
 import space.akko.platform.permission.model.entity.PermissionResource;
 import space.akko.platform.permission.model.vo.PermissionVO;
 import space.akko.platform.permission.repository.PermissionRepository;
@@ -47,7 +47,7 @@ class PermissionServiceTest {
     private PermissionResource testPermission;
     private PermissionDTO testPermissionDTO;
     private PermissionCreateRequest createRequest;
-    private PermissionUpdateRequest updateRequest;
+    private PermissionCreateRequest updateRequest;
 
     @BeforeEach
     void setUp() {
@@ -458,8 +458,9 @@ class PermissionServiceTest {
         return request;
     }
 
-    private PermissionUpdateRequest createPermissionUpdateRequest() {
-        PermissionUpdateRequest request = new PermissionUpdateRequest();
+    private PermissionCreateRequest createPermissionUpdateRequest() {
+        PermissionCreateRequest request = new PermissionCreateRequest();
+        request.setResourceCode("USER_MANAGEMENT");
         request.setResourceName("用户管理(更新)");
         request.setResourceType("API");
         request.setResourceUrl("/api/users");
