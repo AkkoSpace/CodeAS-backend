@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="space.akko.platform.permission.repository.RolePermissionMappingRepository">
+
+    <!-- 根据角色ID查询权限关联 -->
+    <select id="findByRoleId" resultType="space.akko.platform.permission.model.entity.RolePermissionMapping">
+        SELECT * FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} AND is_deleted = false
+        ORDER BY created_at
+    </select>
+
+    <!-- 根据资源ID查询角色关联 -->
+    <select id="findByResourceId" resultType="space.akko.platform.permission.model.entity.RolePermissionMapping">
+        SELECT * FROM platform_schema.role_permission_mapping 
+        WHERE resource_id = #{resourceId} AND is_deleted = false
+        ORDER BY created_at
+    </select>
+
+    <!-- 根据角色ID和资源ID查询关联 -->
+    <select id="findByRoleIdAndResourceId" resultType="space.akko.platform.permission.model.entity.RolePermissionMapping">
+        SELECT * FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} AND resource_id = #{resourceId} AND is_deleted = false
+        LIMIT 1
+    </select>
+
+    <!-- 根据角色ID和资源ID和动作ID查询关联 -->
+    <select id="findByRoleIdAndResourceIdAndActionId" resultType="space.akko.platform.permission.model.entity.RolePermissionMapping">
+        SELECT * FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND action_id = #{actionId} 
+            AND is_deleted = false
+        LIMIT 1
+    </select>
+
+    <!-- 检查角色是否拥有权限 -->
+    <select id="existsByRoleIdAndResourceId" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND is_granted = true 
+            AND is_deleted = false
+    </select>
+
+    <!-- 检查角色是否拥有特定动作权限 -->
+    <select id="existsByRoleIdAndResourceIdAndActionId" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND action_id = #{actionId} 
+            AND is_granted = true 
+            AND is_deleted = false
+    </select>
+
+    <!-- 删除角色的所有权限 -->
+    <update id="deleteByRoleId">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_deleted = true, updated_at = NOW()
+        WHERE role_id = #{roleId} AND is_deleted = false
+    </update>
+
+    <!-- 删除资源的所有角色关联 -->
+    <update id="deleteByResourceId">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_deleted = true, updated_at = NOW()
+        WHERE resource_id = #{resourceId} AND is_deleted = false
+    </update>
+
+    <!-- 删除角色的指定权限 -->
+    <update id="deleteByRoleIdAndResourceId">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_deleted = true, updated_at = NOW()
+        WHERE role_id = #{roleId} AND resource_id = #{resourceId} AND is_deleted = false
+    </update>
+
+    <!-- 删除角色的指定动作权限 -->
+    <update id="deleteByRoleIdAndResourceIdAndActionId">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_deleted = true, updated_at = NOW()
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND action_id = #{actionId} 
+            AND is_deleted = false
+    </update>
+
+    <!-- 批量插入角色权限关联 -->
+    <insert id="batchInsert">
+        INSERT INTO platform_schema.role_permission_mapping 
+        (role_id, resource_id, action_id, is_granted, created_at, updated_at, is_deleted)
+        VALUES
+        <foreach collection="mappings" item="mapping" separator=",">
+            (#{mapping.roleId}, #{mapping.resourceId}, #{mapping.actionId}, #{mapping.isGranted}, NOW(), NOW(), false)
+        </foreach>
+    </insert>
+
+    <!-- 批量删除角色权限关联 -->
+    <update id="batchDeleteByRoleIdAndResourceIds">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_deleted = true, updated_at = NOW()
+        WHERE role_id = #{roleId} 
+            AND resource_id IN
+            <foreach collection="resourceIds" item="resourceId" open="(" separator="," close=")">
+                #{resourceId}
+            </foreach>
+            AND is_deleted = false
+    </update>
+
+    <!-- 更新权限授权状态 -->
+    <update id="updateGrantStatus">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_granted = #{isGranted}, updated_at = NOW()
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND action_id = #{actionId} 
+            AND is_deleted = false
+    </update>
+
+    <!-- 批量更新权限授权状态 -->
+    <update id="batchUpdateGrantStatus">
+        UPDATE platform_schema.role_permission_mapping 
+        SET is_granted = #{isGranted}, updated_at = NOW()
+        WHERE id IN
+        <foreach collection="mappingIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND is_deleted = false
+    </update>
+
+    <!-- 根据角色ID查询已授权的资源ID列表 -->
+    <select id="selectGrantedResourceIdsByRoleId" resultType="long">
+        SELECT DISTINCT resource_id FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND is_granted = true 
+            AND is_deleted = false
+        ORDER BY resource_id
+    </select>
+
+    <!-- 根据角色ID查询已授权的权限映射（包含动作） -->
+    <select id="selectGrantedMappingsByRoleId" resultType="space.akko.platform.permission.model.entity.RolePermissionMapping">
+        SELECT * FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND is_granted = true 
+            AND is_deleted = false
+        ORDER BY resource_id, action_id
+    </select>
+
+    <!-- 根据资源ID查询拥有权限的角色ID列表 -->
+    <select id="selectRoleIdsByResourceId" resultType="long">
+        SELECT DISTINCT role_id FROM platform_schema.role_permission_mapping 
+        WHERE resource_id = #{resourceId} 
+            AND is_granted = true 
+            AND is_deleted = false
+        ORDER BY role_id
+    </select>
+
+    <!-- 检查角色权限映射是否存在 -->
+    <select id="existsMapping" resultType="boolean">
+        SELECT COUNT(1) > 0 FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND resource_id = #{resourceId} 
+            AND action_id = #{actionId} 
+            AND is_deleted = false
+    </select>
+
+    <!-- 查询角色的权限统计信息 -->
+    <select id="countPermissionsByRoleId" resultType="long">
+        SELECT COUNT(DISTINCT resource_id) FROM platform_schema.role_permission_mapping 
+        WHERE role_id = #{roleId} 
+            AND is_granted = true 
+            AND is_deleted = false
+    </select>
+
+    <!-- 查询资源的角色统计信息 -->
+    <select id="countRolesByResourceId" resultType="long">
+        SELECT COUNT(DISTINCT role_id) FROM platform_schema.role_permission_mapping 
+        WHERE resource_id = #{resourceId} 
+            AND is_granted = true 
+            AND is_deleted = false
+    </select>
+
+</mapper>
