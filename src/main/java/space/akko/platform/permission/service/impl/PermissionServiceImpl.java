@@ -12,7 +12,7 @@ import org.springframework.util.StringUtils;
 import space.akko.foundation.common.PageResult;
 import space.akko.foundation.constant.CacheConstants;
 import space.akko.foundation.constant.CommonConstants;
-import space.akko.foundation.enums.ResultCode;
+import space.akko.foundation.common.ResultCode;
 import space.akko.foundation.exception.BusinessException;
 import space.akko.platform.permission.model.dto.PermissionDTO;
 import space.akko.platform.permission.model.entity.PermissionResource;

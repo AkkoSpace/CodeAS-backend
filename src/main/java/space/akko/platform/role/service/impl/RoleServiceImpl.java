@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import space.akko.foundation.common.PageResult;
 import space.akko.foundation.constant.CacheConstants;
 import space.akko.foundation.constant.CommonConstants;
-import space.akko.foundation.enums.ResultCode;
+import space.akko.foundation.common.ResultCode;
 import space.akko.foundation.exception.BusinessException;
 import space.akko.platform.role.model.dto.RoleDTO;
 import space.akko.platform.role.model.entity.RoleDefinition;
