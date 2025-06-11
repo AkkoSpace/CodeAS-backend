@@ -27,7 +27,7 @@
         <flyway.version>11.9.0</flyway.version>
 
         <!-- Cache -->
-        <caffeine.version>3.2.0</caffeine.version>
+        <caffeine.version>3.2.1</caffeine.version>
 
         <!-- JWT -->
         <jjwt.version>0.12.6</jjwt.version>
