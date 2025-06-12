@@ -1,5 +1,5 @@
 # 使用OpenJDK 21作为基础镜像
-FROM openjdk:21-jdk-slim
+FROM openjdk:26-jdk-slim
 
 # 设置维护者信息
 LABEL maintainer="akko <akko@akko.space>"
